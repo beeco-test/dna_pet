@@ -223,31 +223,25 @@ if menu == "📊 대시보드":
         
         # 빈도 순서 정의 (일수가 적은순)
         frequency_order = ['초고빈도', '주간', '고빈도', '월간', '저빈도']
-        frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
-        
-        # Streamlit 내장 차트 사용 (정렬된 순서로)
-        st.write("**📊 구매 빈도별 고객 분포:**")
-        
-        # 안전한 최대값 계산
-        if len(frequency_counts) > 0:
-            max_count = frequency_counts.max()
-        else:
-            max_count = 1
-        
+        # 순서대로 데이터 준비
+        ordered_data = {}
         for category in frequency_order:
             if category in frequency_counts:
-                count = frequency_counts[category]
-                percentage = count / len(pet_customers) * 100
-                
-                # 막대 그래프 효과
-                col1, col2 = st.columns([1, 4])
-                with col1:
-                    st.write(f"**{category}**")
-                with col2:
-                    progress = count / max_count if max_count > 0 else 0
-                    st.progress(progress)
-                    st.write(f"{count}명 ({percentage:.1f}%)")
-                st.write("")
+                ordered_data[category] = frequency_counts[category]
+            else:
+                ordered_data[category] = 0
+        
+        # 수동으로 막대 그래프 구현
+        st.write("**고객 수 분포:**")
+        max_count = max(ordered_data.values()) if ordered_data.values() else 1
+        
+        for category in frequency_order:
+            count = ordered_data[category]
+            if max_count > 0:
+                progress = count / max_count
+                st.write(f"**{category}**: {count}명")
+                st.progress(progress)
+                st.write("")  # 간격
         
         # 상세 정보 표시 (일수 기준 포함)
         frequency_descriptions = {
@@ -923,6 +917,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
