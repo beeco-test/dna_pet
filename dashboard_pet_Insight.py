@@ -223,10 +223,19 @@ if menu == "📊 대시보드":
 
         # 빈도 순서 정의 (일수가 적은순)
         frequency_order = ['초고빈도', '주간', '고빈도', '월간', '저빈도']
-        frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
+        # DataFrame으로 변환하여 순서 강제 적용
+        chart_data = []
+        for category in frequency_order:
+            if category in frequency_counts:
+                chart_data.append({'빈도': category, '고객수': frequency_counts[category]})
+            else:
+                chart_data.append({'빈도': category, '고객수': 0})
 
-        # Streamlit 내장 차트 사용 (정렬된 순서로)
-        st.bar_chart(frequency_counts_sorted)
+        chart_df = pd.DataFrame(chart_data)
+        chart_df = chart_df.set_index('빈도')
+
+        # Streamlit 차트 (순서가 보장됨)
+        st.bar_chart(chart_df)
 
         # 상세 정보 표시 (일수 기준 포함)
         frequency_descriptions = {
@@ -256,14 +265,7 @@ if menu == "📊 대시보드":
         top_customer = pet_customers.loc[pet_customers['total_spend'].idxmax()]
         avg_total_spend = pet_customers['total_spend'].mean()
         st.write(f"👑 **최고 매출 고객**: 고객 {top_customer['household_key']} (${top_customer['total_spend']:,.2f})")
-        st.write(f"📊 **평균 총 매출**: ${avg_total_spend:,.2f}")
-        
-
-    # 더보기 버튼 부분도 동일하게 수정
-    if st.button("📋 전체 고객 매출 순위 보기"):
-       st.subheader("📊 전체 고객 매출 순위")
-       full_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False)
-       st.dataframe(full_analysis, use_container_width=True)
+        st.write(f"📊 **평균 총 매출**: ${avg_total_spend:,.2f}")        
         
     # 주기상향 기회 분석
     st.subheader("🎯 주기상향 기회 분석")
@@ -909,6 +911,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
