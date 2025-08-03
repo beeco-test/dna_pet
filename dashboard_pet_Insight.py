@@ -230,16 +230,19 @@ if menu == "📊 대시보드":
             st.write(f"• **{category}**: {count}명 ({percentage:.1f}%)")
     
     with col2:
-        st.subheader("💰 펫 지출 vs 총 지출 관계")
+        st.subheader("💰 펫고객별 총매출 순위")
         
         # 산점도를 표로 대체
         spend_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].head(10)
         st.dataframe(spend_analysis)
         
         # 통계 정보
-        correlation = pet_customers['pet_spend'].corr(pet_customers['total_spend'])
-        st.write(f"📊 **펫 지출과 총 지출 상관관계**: {correlation:.3f}")
-    
+        top_customer = pet_customers.loc[pet_customers['total_spend'].idxmax()]
+        avg_total_spend = pet_customers['total_spend'].mean()
+        st.write(f"👑 **최고 매출 고객**: 고객 {top_customer['household_key']} (${top_customer['total_spend']:,.2f})")
+        st.write(f"📊 **평균 총 매출**: ${avg_total_spend:,.2f}")
+        spend_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False).head(10) 
+        
     # 주기상향 기회 분석
     st.subheader("🎯 주기상향 기회 분석")
     
@@ -884,4 +887,5 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
