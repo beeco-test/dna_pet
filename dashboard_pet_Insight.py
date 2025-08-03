@@ -199,15 +199,15 @@ if menu == "📊 대시보드":
     
     with col2:
         total_pet_spend = pet_customers['pet_spend'].sum()
-        st.metric("펫 제품 총 매출", f"${total_pet_spend:,.2f}")
+        st.metric("펫 제품 총 매출", f"£{total_pet_spend:,.2f}")
     
     with col3:
         avg_pet_spend = pet_customers['pet_spend'].mean()
-        st.metric("평균 펫 지출", f"${avg_pet_spend:.2f}")
+        st.metric("평균 펫 지출", f"£{avg_pet_spend:.2f}")
     
     with col4:
         potential_revenue = frequency_changes['sales_change'].sum()
-        st.metric("상향이동 잠재 수익", f"${potential_revenue:,.2f}")
+        st.metric("상향이동 잠재 수익", f"£{potential_revenue:,.2f}")
     
     st.markdown("---")
     
@@ -255,7 +255,7 @@ if menu == "📊 대시보드":
         
         # 상세 정보 표시
         for _, row in top_categories.iterrows():
-            st.write(f"• **{row['category']}**: {row['percentage_change']:.1f}% 증가 (${row['sales_change']:.2f})")
+            st.write(f"• **{row['category']}**: {row['percentage_change']:.1f}% 증가 (£{row['sales_change']:.2f})")
     
     with col2:
         st.subheader("상향 대상 고객 식별")
@@ -267,12 +267,12 @@ if menu == "📊 대시보드":
         
         # 히스토그램을 표로 대체
         st.write(f"**상향 대상 고객**: {len(upgrade_candidates)}명")
-        st.write(f"**평균 펫 지출**: ${upgrade_candidates['pet_spend'].mean():.2f}")
+        st.write(f"**평균 펫 지출**: £{upgrade_candidates['pet_spend'].mean():.2f}")
         st.write(f"**Club+ 회원**: {upgrade_candidates['club_plus_member'].sum()}명")
         
         # 지출 구간별 분포
         bins = [0, 25, 50, 100, 200]
-        labels = ['$0-25', '$25-50', '$50-100', '$100+']
+        labels = ['£0-25', '£25-50', '£50-100', '£100+']
         upgrade_candidates['spend_range'] = pd.cut(upgrade_candidates['pet_spend'], bins=bins, labels=labels, include_lowest=True)
         spend_dist = upgrade_candidates['spend_range'].value_counts()
         
@@ -301,10 +301,10 @@ elif menu == "🎯 개인 고객 분석":
         st.metric("펫 거래 횟수", f"{customer_data['pet_transactions']}회")
     
     with col2:
-        st.metric("펫 지출 금액", f"${customer_data['pet_spend']:.2f}")
+        st.metric("펫 지출 금액", f"£{customer_data['pet_spend']:.2f}")
     
     with col3:
-        st.metric("총 지출 금액", f"${customer_data['total_spend']:.2f}")
+        st.metric("총 지출 금액", f"£{customer_data['total_spend']:.2f}")
     
     with col4:
         st.metric("펫 지출 비율", f"{customer_data['pet_ratio']:.1f}%")
@@ -337,7 +337,7 @@ elif menu == "🎯 개인 고객 분석":
         pet_spend_stats = same_frequency_customers['pet_spend'].describe()
         for stat, value in pet_spend_stats.items():
             if stat in ['mean', 'std', 'min', 'max']:
-                st.write(f"• {stat}: ${value:.2f}")
+                st.write(f"• {stat}: £{value:.2f}")
         
         current_rank = (same_frequency_customers['pet_spend'] < customer_data['pet_spend']).sum() + 1
         st.write(f"**현재 고객 순위**: {current_rank}/{len(same_frequency_customers)}위")
@@ -401,8 +401,8 @@ elif menu == "📈 주기상향 추천":
             st.subheader("📊 대상 고객 정보")
             st.metric("대상 고객 수", f"{len(target_customers)}명")
             if len(target_customers) > 0:
-                st.metric("평균 펫 지출", f"${target_customers['pet_spend'].mean():.2f}")
-                st.metric("평균 총 지출", f"${target_customers['total_spend'].mean():.2f}")
+                st.metric("평균 펫 지출", f"£{target_customers['pet_spend'].mean():.2f}")
+                st.metric("평균 총 지출", f"£{target_customers['total_spend'].mean():.2f}")
                 club_plus_count = target_customers['club_plus_member'].sum()
                 st.metric("Club+ 회원", f"{club_plus_count}명 ({club_plus_count/len(target_customers)*100:.1f}%)")
             
@@ -436,8 +436,8 @@ elif menu == "📈 주기상향 추천":
                             st.write(f"📱 {mask_phone_number(customer['phone_number'])}")
                         
                         with col_info2:
-                            st.write(f"💰 펫 지출: ${customer['pet_spend']:.2f}")
-                            st.write(f"🛒 총 지출: ${customer['total_spend']:.2f}")
+                            st.write(f"💰 펫 지출: £{customer['pet_spend']:.2f}")
+                            st.write(f"🛒 총 지출: £{customer['total_spend']:.2f}")
                         
                         with col_btn:
                             if st.button(f"상세보기", key=f"detail_{customer['household_key']}"):
@@ -500,7 +500,7 @@ elif menu == "📈 주기상향 추천":
                         st.write(f"**{category['category']}**")
                     
                     with col_cat2:
-                        st.metric("예상 매출 증가", f"${category['sales_change']:.2f}")
+                        st.metric("예상 매출 증가", f"£{category['sales_change']:.2f}")
                     
                     with col_cat3:
                         st.metric("증가율", f"{category['percentage_change']:.1f}%")
@@ -544,10 +544,10 @@ elif menu == "📈 주기상향 추천":
             st.metric("펫 거래 횟수", f"{customer_detail['pet_transactions']}회")
         
         with col2:
-            st.metric("펫 지출 금액", f"${customer_detail['pet_spend']:.2f}")
+            st.metric("펫 지출 금액", f"£{customer_detail['pet_spend']:.2f}")
         
         with col3:
-            st.metric("총 지출 금액", f"${customer_detail['total_spend']:.2f}")
+            st.metric("총 지출 금액", f"£{customer_detail['total_spend']:.2f}")
         
         with col4:
             st.metric("펫 지출 비율", f"{customer_detail['pet_ratio']:.1f}%")
@@ -804,7 +804,7 @@ elif menu == "💰 수익 예측":
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("총 예상 수익 증가", f"${total_projected_revenue:,.2f}")
+        st.metric("총 예상 수익 증가", f"£{total_projected_revenue:,.2f}")
     
     with col2:
         total_converted = sum([r['converted_customers'] for r in scenario_results])
@@ -812,7 +812,7 @@ elif menu == "💰 수익 예측":
     
     with col3:
         monthly_avg = total_projected_revenue / target_months
-        st.metric("월평균 수익 증가", f"${monthly_avg:,.2f}")
+        st.metric("월평균 수익 증가", f"£{monthly_avg:,.2f}")
     
     # 시나리오별 상세 결과
     st.subheader("📋 시나리오별 상세 예측")
@@ -826,8 +826,8 @@ elif menu == "💰 수익 예측":
     st.subheader("📊 상세 수익 예측 테이블")
     
     display_df = results_df.copy()
-    display_df['monthly_revenue_increase'] = display_df['monthly_revenue_increase'].apply(lambda x: f"${x:,.2f}")
-    display_df['total_revenue_increase'] = display_df['total_revenue_increase'].apply(lambda x: f"${x:,.2f}")
+    display_df['monthly_revenue_increase'] = display_df['monthly_revenue_increase'].apply(lambda x: f"£{x:,.2f}")
+    display_df['total_revenue_increase'] = display_df['total_revenue_increase'].apply(lambda x: f"£{x:,.2f}")
     
     display_df.columns = [
         '상향 시나리오',
@@ -843,10 +843,10 @@ elif menu == "💰 수익 예측":
     st.subheader("💡 추가 인사이트")
     
     insights = [
-        f"📊 **최고 수익 시나리오**: {scenario_results[0]['scenario']} - ${scenario_results[0]['total_revenue_increase']:,.2f}",
-        f"🎯 **전환율 1% 증가 시**: 추가 ${(total_projected_revenue * 0.01 / (conversion_rate / 100)):,.2f} 수익 기대",
-        f"⏰ **목표 기간 연장 시**: 12개월 기준 ${(total_projected_revenue * 12 / target_months):,.2f} 수익 가능",
-        f"🔄 **지속적 상향 시**: 고객 생애가치 기준 ${total_projected_revenue * 2:,.2f} 장기 수익 예상"
+        f"📊 **최고 수익 시나리오**: {scenario_results[0]['scenario']} - £{scenario_results[0]['total_revenue_increase']:,.2f}",
+        f"🎯 **전환율 1% 증가 시**: 추가 £{(total_projected_revenue * 0.01 / (conversion_rate / 100)):,.2f} 수익 기대",
+        f"⏰ **목표 기간 연장 시**: 12개월 기준 £{(total_projected_revenue * 12 / target_months):,.2f} 수익 가능",
+        f"🔄 **지속적 상향 시**: 고객 생애가치 기준 £{total_projected_revenue * 2:,.2f} 장기 수익 예상"
     ]
     
     for insight in insights:
@@ -884,3 +884,4 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
