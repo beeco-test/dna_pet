@@ -101,15 +101,17 @@ def load_sample_data():
 pet_customers, frequency_changes, products = load_sample_data()
 
 # 고객 구매 빈도 분류 함수
-def classify_frequency(transactions):
-    if transactions <= 2:
+def classify_frequency(monthly_transactions):
+    if monthly_transactions < 1:
+        return "한달이상"
+    elif monthly_transactions <= 2:
+        return "월간구매"
+    elif monthly_transactions <= 3:
         return "저빈도"
-    elif transactions <= 8:
-        return "월간"
-    elif transactions <= 15:
-        return "고빈도"
-    elif transactions <= 25:
-        return "주간"
+    elif monthly_transactions <= 4:
+        return "고빈도" 
+    elif monthly_transactions <= 6:
+        return "주간구매"
     else:
         return "초고빈도"
 
@@ -902,6 +904,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
