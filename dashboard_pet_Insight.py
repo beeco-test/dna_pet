@@ -233,7 +233,7 @@ if menu == "📊 대시보드":
         st.subheader("💰 펫고객별 총매출 순위")
         
         # 총매출순으로 정렬된 데이터
-        spend_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False).head(10) 
+        spend_analysis_sorted = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False) 
         # 상위 10개 표시
         st.dataframe(spend_analysis_sorted.head(10))
         
@@ -894,6 +894,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
