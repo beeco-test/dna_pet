@@ -242,6 +242,12 @@ if menu == "📊 대시보드":
         st.write(f"👑 **최고 매출 고객**: 고객 {top_customer['household_key']} (${top_customer['total_spend']:,.2f})")
         st.write(f"📊 **평균 총 매출**: ${avg_total_spend:,.2f}")
         spend_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False).head(10) 
+
+    # 더보기 버튼 부분도 동일하게 수정
+    if st.button("📋 전체 고객 매출 순위 보기"):
+       st.subheader("📊 전체 고객 매출 순위")
+       full_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False)
+       st.dataframe(full_analysis, use_container_width=True)
         
     # 주기상향 기회 분석
     st.subheader("🎯 주기상향 기회 분석")
@@ -887,5 +893,6 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
