@@ -223,19 +223,14 @@ if menu == "📊 대시보드":
 
         # 빈도 순서 정의 (일수가 적은순)
         frequency_order = ['초고빈도', '주간', '고빈도', '월간', '저빈도']
-        # DataFrame으로 변환하여 순서 강제 적용
-        chart_data = []
-        for category in frequency_order:
+
+        # 텍스트로 표시
+        st.write("**📊 고객 분포 (구매 빈도순):**")
+        for i, category in enumerate(frequency_order, 1):
             if category in frequency_counts:
-                chart_data.append({'빈도': category, '고객수': frequency_counts[category]})
-            else:
-                chart_data.append({'빈도': category, '고객수': 0})
-
-        chart_df = pd.DataFrame(chart_data)
-        chart_df = chart_df.set_index('빈도')
-
-        # Streamlit 차트 (순서가 보장됨)
-        st.bar_chart(chart_df)
+                count = frequency_counts[category]
+                percentage = count / len(pet_customers) * 100
+                st.write(f"{i}. **{category}**: {count}명 ({percentage:.1f}%)")
 
         # 상세 정보 표시 (일수 기준 포함)
         frequency_descriptions = {
@@ -911,6 +906,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
