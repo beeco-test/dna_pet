@@ -226,7 +226,21 @@ if menu == "📊 대시보드":
         frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
         
         # Streamlit 내장 차트 사용 (정렬된 순서로)
-        st.bar_chart(frequency_counts_sorted)
+        st.write("**📊 구매 빈도별 고객 분포:**")
+        for category in frequency_order:
+            if category in frequency_counts:
+                count = frequency_counts[category]
+                percentage = count / len(pet_customers) * 100
+                
+                # 막대 그래프 효과
+                col1, col2 = st.columns([1, 4])
+                with col1:
+                    st.write(f"**{category}**")
+                with col2:
+                    progress = count / max(frequency_counts.values()) if frequency_counts.values() else 0
+                    st.progress(progress)
+                    st.write(f"{count}명 ({percentage:.1f}%)")
+                st.write("")
         
         # 상세 정보 표시 (일수 기준 포함)
         frequency_descriptions = {
@@ -902,6 +916,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
