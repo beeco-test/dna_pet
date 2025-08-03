@@ -221,32 +221,28 @@ if menu == "📊 대시보드":
         pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
         frequency_counts = pet_customers['frequency_category'].value_counts()
 
-        # 빈도 순서 정의 (일수가 적은순)
+        # 빈도 순서 정의 (일수가 적은순: 초고빈도 -> 저빈도)
         frequency_order = ['초고빈도', '주간', '고빈도', '월간', '저빈도']
-
-        # 텍스트로 표시
-        st.write("**📊 고객 분포 (구매 빈도순):**")
-        for i, category in enumerate(frequency_order, 1):
-            if category in frequency_counts:
-                count = frequency_counts[category]
-                percentage = count / len(pet_customers) * 100
-                st.write(f"{i}. **{category}**: {count}명 ({percentage:.1f}%)")
-
-        # 상세 정보 표시 (일수 기준 포함)
-        frequency_descriptions = {
-            '초고빈도': '월 25회 초과 (거의 매일)',
-            '주간': '월 16-25회 (주 4-6회)', 
-            '고빈도': '월 9-15회 (주 2-3회)',
-            '월간': '월 3-8회 (주 1회)',
-            '저빈도': '월 2회 이하 (격주 1회)'
-        }
-
+        
+        # 순서대로 데이터 준비
+        ordered_data = {}
         for category in frequency_order:
             if category in frequency_counts:
-                count = frequency_counts[category]
-                percentage = count / len(pet_customers) * 100
-                description = frequency_descriptions[category]
-                st.write(f"• **{category}** ({description}): {count}명 ({percentage:.1f}%)")
+                ordered_data[category] = frequency_counts[category]
+            else:
+                ordered_data[category] = 0
+        
+        # 수동으로 막대 그래프 구현
+        st.write("**고객 수 분포:**")
+        max_count = max(ordered_data.values()) if ordered_data.values() else 1
+        
+        for category in frequency_order:
+            count = ordered_data[category]
+            if max_count > 0:
+                progress = count / max_count
+                st.write(f"**{category}**: {count}명")
+                st.progress(progress)
+                st.write("")  # 간격
     
     with col2:
         st.subheader("💰 펫고객별 총매출 순위")
@@ -906,6 +902,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
