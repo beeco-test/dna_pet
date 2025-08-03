@@ -227,6 +227,10 @@ if menu == "📊 대시보드":
         
         # Streamlit 내장 차트 사용 (정렬된 순서로)
         st.write("**📊 구매 빈도별 고객 분포:**")
+
+        # 최대값 먼저 계산
+        max_count = max(frequency_counts.values()) if len(frequency_counts) > 0 else 1
+        
         for category in frequency_order:
             if category in frequency_counts:
                 count = frequency_counts[category]
@@ -237,7 +241,6 @@ if menu == "📊 대시보드":
                 with col1:
                     st.write(f"**{category}**")
                 with col2:
-                    max_count = max(frequency_counts.values()) if len(frequency_counts) > 0 else 1
                     progress = count / max_count
                     st.progress(progress)
                     st.write(f"{count}명 ({percentage:.1f}%)")
@@ -917,6 +920,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
