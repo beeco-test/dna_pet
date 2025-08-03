@@ -220,14 +220,29 @@ if menu == "📊 대시보드":
         # 구매 빈도 분류
         pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
         frequency_counts = pet_customers['frequency_category'].value_counts()
-        
-        # Streamlit 내장 차트 사용
-        st.bar_chart(frequency_counts)
-        
-        # 상세 정보 표시
-        for category, count in frequency_counts.items():
-            percentage = count / len(pet_customers) * 100
-            st.write(f"• **{category}**: {count}명 ({percentage:.1f}%)")
+
+        # 빈도 순서 정의 (일수가 적은순)
+        frequency_order = ['초고빈도', '주간', '고빈도', '월간', '저빈도']
+        frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
+
+        # Streamlit 내장 차트 사용 (정렬된 순서로)
+        st.bar_chart(frequency_counts_sorted)
+
+        # 상세 정보 표시 (일수 기준 포함)
+        frequency_descriptions = {
+            '초고빈도': '월 25회 초과 (거의 매일)',
+            '주간': '월 16-25회 (주 4-6회)', 
+            '고빈도': '월 9-15회 (주 2-3회)',
+            '월간': '월 3-8회 (주 1회)',
+            '저빈도': '월 2회 이하 (격주 1회)'
+        }
+
+for category in frequency_order:
+    if category in frequency_counts:
+        count = frequency_counts[category]
+        percentage = count / len(pet_customers) * 100
+        description = frequency_descriptions[category]
+        st.write(f"• **{category}** ({description}): {count}명 ({percentage:.1f}%)")
     
     with col2:
         st.subheader("💰 펫고객별 총매출 순위")
@@ -894,6 +909,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
