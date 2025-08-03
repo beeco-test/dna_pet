@@ -23,12 +23,48 @@ menu = st.sidebar.selectbox(
 # 샘플 데이터 생성 (실제 사용 시에는 업로드된 파일에서 읽어옴)
 @st.cache_data
 def load_sample_data():
-    # 펫 고객 데이터 샘플 (더 많은 고객 데이터)
+    # 펫 고객 데이터 샘플 (실제 분포에 맞춤)
     np.random.seed(42)
-    customer_count = 50
     
-    household_keys = np.random.randint(1000, 9999, customer_count)
-    pet_transactions = np.random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28], customer_count)
+    # 실제 데이터 분포에 맞게 고객 생성
+    # 주간 구매 (5-7일): 266명, 월간 구매 (14-30일): 237명, 고빈도 (8-10일): 139명, 저빈도 (11-13일): 98명, 한달 이상 (30일+): 87명
+    frequency_distribution = {
+        '주간구매': 266,    # 5-6 transactions per month
+        '월간구매': 237,    # 1-2 transactions per month  
+        '고빈도': 139,      # 4 transactions per month
+        '저빈도': 98,       # 3 transactions per month
+        '한달이상': 87      # <1 transaction per month
+    }
+    
+    customer_count = sum(frequency_distribution.values())  # 827명
+    
+    # 각 빈도별로 고객 생성
+    household_keys = []
+    pet_transactions = []
+    
+    customer_id = 1000
+    for freq_type, count in frequency_distribution.items():
+        for _ in range(count):
+            household_keys.append(customer_id)
+            customer_id += 1
+            
+            # 빈도별 거래 횟수 할당
+            if freq_type == '한달이상':
+                pet_transactions.append(np.random.choice([0.5, 0.7, 0.9]))  # <1 per month
+            elif freq_type == '월간구매':
+                pet_transactions.append(np.random.choice([1, 2]))  # 1-2 per month
+            elif freq_type == '저빈도':
+                pet_transactions.append(3)  # 3 per month
+            elif freq_type == '고빈도':
+                pet_transactions.append(4)  # 4 per month
+            elif freq_type == '주간구매':
+                pet_transactions.append(np.random.choice([5, 6]))  # 5-6 per month
+    
+    # 데이터를 섞어서 랜덤화
+    combined_data = list(zip(household_keys, pet_transactions))
+    np.random.shuffle(combined_data)
+    household_keys, pet_transactions = zip(*combined_data)
+    
     pet_spend = np.random.uniform(10, 200, customer_count).round(2)
     total_spend = np.random.uniform(500, 8000, customer_count).round(2)
     pet_ratio = (pet_spend / total_spend * 100).round(2)
@@ -100,20 +136,20 @@ def load_sample_data():
 
 pet_customers, frequency_changes, products = load_sample_data()
 
-# 고객 구매 빈도 분류 함수 (수정된 기준)
+# 고객 구매 빈도 분류 함수 (실제 데이터 기준)
 def classify_frequency(monthly_transactions):
     if monthly_transactions < 1:
-        return "한달이상"
+        return "한달이상"  # 30일+ 간격
     elif monthly_transactions <= 2:
-        return "월간구매"
-    elif monthly_transactions <= 3:
-        return "저빈도"
-    elif monthly_transactions <= 4:
-        return "고빈도" 
+        return "월간구매"  # 14-30일 간격
+    elif monthly_transactions == 3:
+        return "저빈도"    # 11-13일 간격
+    elif monthly_transactions == 4:
+        return "고빈도"    # 8-10일 간격
     elif monthly_transactions <= 6:
-        return "주간구매"
+        return "주간구매"  # 5-7일 간격
     else:
-        return "초고빈도"
+        return "초고빈도"  # 0-4일 간격
 
 # 고객별 인사이트 생성 함수
 def generate_customer_insights(customer_data, target_customers):
@@ -223,21 +259,20 @@ if menu == "📊 대시보드":
         pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
         frequency_counts = pet_customers['frequency_category'].value_counts()
         
-        # 빈도 순서 정의 (구매 빈도가 높은 순서대로)
-        frequency_order = ['초고빈도', '주간구매', '고빈도', '저빈도', '월간구매', '한달이상']
+        # 빈도 순서 정의 (고객 수가 많은 순서대로)
+        frequency_order = ['주간구매', '월간구매', '고빈도', '저빈도', '한달이상']
         frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
         
         # Streamlit 내장 차트 사용 (정렬된 순서로)
         st.bar_chart(frequency_counts_sorted)
         
-        # 상세 정보 표시 (새로운 기준 포함)
+        # 상세 정보 표시 (실제 데이터 기준)
         frequency_descriptions = {
-            '초고빈도': '월 7회 초과 (주 2회 이상)',
-            '주간구매': '월 5-6회 (주 1-2회)',
-            '고빈도': '월 4회 (주 1회)',
-            '저빈도': '월 3회 (2주 1회)',
-            '월간구매': '월 1-2회 (격주 또는 월 1회)',
-            '한달이상': '월 1회 미만 (드문 구매)'
+            '주간구매': '5-7일 간격 (월 4-6회)',
+            '월간구매': '14-30일 간격 (월 1-2회)',
+            '고빈도': '8-10일 간격 (월 3-4회)',
+            '저빈도': '11-13일 간격 (월 2-3회)',
+            '한달이상': '30일+ 간격 (월 1회 미만)'
         }
         
         for category in frequency_order:
@@ -281,9 +316,9 @@ if menu == "📊 대시보드":
     with col2:
         st.subheader("상향 대상 고객 식별")
         
-        # 상향 가능 고객 (저빈도, 월간구매 고객)
+        # 상향 가능 고객 (저빈도, 월간구매, 한달이상 고객)
         upgrade_candidates = pet_customers[
-            pet_customers['frequency_category'].isin(['저빈도', '월간구매'])
+            pet_customers['frequency_category'].isin(['저빈도', '월간구매', '한달이상'])
         ]
         
         # 히스토그램을 표로 대체
@@ -377,40 +412,40 @@ elif menu == "🎯 개인 고객 분석":
 elif menu == "📈 주기상향 추천":
     st.title("📈 주기상향 추천")
     
-    # 상향 단계 선택 (새로운 분류명으로 수정)
+    # 상향 단계 선택 (실제 데이터 기준)
     upgrade_path = st.selectbox(
         "상향 경로를 선택하세요:",
         [
-            "한달이상 → 월간구매",
-            "월간구매 → 저빈도",
-            "저빈도 → 고빈도",
-            "고빈도 → 주간구매",
-            "주간구매 → 초고빈도"
+            "주간구매 (5-7일) → 초고빈도 (0-4일)",
+            "월간구매 (14-30일) → 저빈도 (11-13일)",
+            "고빈도 (8-10일) → 주간구매 (5-7일)",
+            "저빈도 (11-13일) → 고빈도 (8-10일)",
+            "한달이상 (30일+) → 월간구매 (14-30일)"
         ]
     )
     
     st.subheader(f"🎯 {upgrade_path} 추천 전략")
     
-    # 상향 대상 고객 식별 (새로운 분류명으로 수정)
-    if "한달이상 → 월간구매" in upgrade_path:
+    # 상향 대상 고객 식별 (실제 데이터 기준)
+    if "주간구매 (5-7일) → 초고빈도 (0-4일)" in upgrade_path:
         target_customers = pet_customers[
-            pet_customers['pet_transactions'].apply(classify_frequency) == "한달이상"
+            pet_customers['pet_transactions'].apply(classify_frequency) == "주간구매"
         ]
-    elif "월간구매 → 저빈도" in upgrade_path:
+    elif "월간구매 (14-30일) → 저빈도 (11-13일)" in upgrade_path:
         target_customers = pet_customers[
             pet_customers['pet_transactions'].apply(classify_frequency) == "월간구매"
         ]
-    elif "저빈도 → 고빈도" in upgrade_path:
-        target_customers = pet_customers[
-            pet_customers['pet_transactions'].apply(classify_frequency) == "저빈도"
-        ]
-    elif "고빈도 → 주간구매" in upgrade_path:
+    elif "고빈도 (8-10일) → 주간구매 (5-7일)" in upgrade_path:
         target_customers = pet_customers[
             pet_customers['pet_transactions'].apply(classify_frequency) == "고빈도"
         ]
-    else:  # "주간구매 → 초고빈도"
+    elif "저빈도 (11-13일) → 고빈도 (8-10일)" in upgrade_path:
         target_customers = pet_customers[
-            pet_customers['pet_transactions'].apply(classify_frequency) == "주간구매"
+            pet_customers['pet_transactions'].apply(classify_frequency) == "저빈도"
+        ]
+    else:  # "한달이상 (30일+) → 월간구매 (14-30일)"
+        target_customers = pet_customers[
+            pet_customers['pet_transactions'].apply(classify_frequency) == "한달이상"
         ]
     
     # 세션 스테이트 초기화
@@ -789,12 +824,12 @@ elif menu == "💰 수익 예측":
             help="상향 효과를 측정할 기간"
         )
     
-    # 각 상향 단계별 예측 (새로운 분류명으로 수정)
+    # 각 상향 단계별 예측 (실제 데이터 기준)
     scenarios = [
         {
-            'name': '한달이상 → 월간구매',
-            'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "한달이상"]),
-            'avg_increase': frequency_changes['sales_change'].mean()
+            'name': '주간구매 → 초고빈도',
+            'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "주간구매"]),
+            'avg_increase': frequency_changes['sales_change'].mean() * 1.5
         },
         {
             'name': '월간구매 → 저빈도',
@@ -802,19 +837,19 @@ elif menu == "💰 수익 예측":
             'avg_increase': frequency_changes['sales_change'].mean() * 1.1
         },
         {
-            'name': '저빈도 → 고빈도',
-            'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "저빈도"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 1.2
-        },
-        {
             'name': '고빈도 → 주간구매',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "고빈도"]),
             'avg_increase': frequency_changes['sales_change'].mean() * 1.3
         },
         {
-            'name': '주간구매 → 초고빈도',
-            'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "주간구매"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 1.5
+            'name': '저빈도 → 고빈도',
+            'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "저빈도"]),
+            'avg_increase': frequency_changes['sales_change'].mean() * 1.2
+        },
+        {
+            'name': '한달이상 → 월간구매',
+            'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "한달이상"]),
+            'avg_increase': frequency_changes['sales_change'].mean()
         }
     ]
     
