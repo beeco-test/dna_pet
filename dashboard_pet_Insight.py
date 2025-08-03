@@ -237,12 +237,12 @@ if menu == "📊 대시보드":
             '저빈도': '월 2회 이하 (격주 1회)'
         }
 
-for category in frequency_order:
-    if category in frequency_counts:
-        count = frequency_counts[category]
-        percentage = count / len(pet_customers) * 100
-        description = frequency_descriptions[category]
-        st.write(f"• **{category}** ({description}): {count}명 ({percentage:.1f}%)")
+        for category in frequency_order:
+            if category in frequency_counts:
+                count = frequency_counts[category]
+                percentage = count / len(pet_customers) * 100
+                description = frequency_descriptions[category]
+                st.write(f"• **{category}** ({description}): {count}명 ({percentage:.1f}%)")
     
     with col2:
         st.subheader("💰 펫고객별 총매출 순위")
@@ -909,6 +909,7 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
 
