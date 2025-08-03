@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
 
 # 페이지 설정
@@ -35,6 +32,8 @@ def load_sample_data():
     pet_spend = np.random.uniform(10, 200, customer_count).round(2)
     total_spend = np.random.uniform(500, 8000, customer_count).round(2)
     pet_ratio = (pet_spend / total_spend * 100).round(2)
+    club_plus_member = np.random.choice([True, False], customer_count, p=[0.3, 0.7])  # 30% club+ 회원
+    
     # 펫 카테고리를 소분류까지 세분화
     pet_categories_detailed = [
         'DOG-사료/간식, CAT-모래/위생용품', 
@@ -65,7 +64,6 @@ def load_sample_data():
         num_categories = np.random.choice([1, 2, 3], p=[0.4, 0.4, 0.2])
         selected_categories = np.random.choice(pet_categories_detailed, num_categories, replace=False)
         pet_categories.append(', '.join(selected_categories))
-    club_plus_member = np.random.choice([True, False], customer_count, p=[0.3, 0.7])  # 30% club+ 회원
     
     pet_customers = pd.DataFrame({
         'household_key': household_keys,
@@ -182,6 +180,13 @@ def generate_customer_insights(customer_data, target_customers):
     
     return insights, marketing_tips
 
+# 전화번호 마스킹 함수
+def mask_phone_number(phone_number):
+    """전화번호 뒷자리 4자리를 ****로 마스킹"""
+    if len(phone_number) >= 4:
+        return phone_number[:-4] + "****"
+    return phone_number
+
 # 대시보드 페이지
 if menu == "📊 대시보드":
     st.title("🐾 펫 고객 주기상향 추천서비스 대시보드")
@@ -216,28 +221,24 @@ if menu == "📊 대시보드":
         pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
         frequency_counts = pet_customers['frequency_category'].value_counts()
         
-        fig_pie = px.pie(
-            values=frequency_counts.values,
-            names=frequency_counts.index,
-            title="구매 빈도별 고객 분포",
-            color_discrete_sequence=['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7']
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
+        # Streamlit 내장 차트 사용
+        st.bar_chart(frequency_counts)
+        
+        # 상세 정보 표시
+        for category, count in frequency_counts.items():
+            percentage = count / len(pet_customers) * 100
+            st.write(f"• **{category}**: {count}명 ({percentage:.1f}%)")
     
     with col2:
         st.subheader("💰 펫 지출 vs 총 지출 관계")
         
-        fig_scatter = px.scatter(
-            pet_customers,
-            x='total_spend',
-            y='pet_spend',
-            size='pet_transactions',
-            color='frequency_category',
-            hover_data=['household_key'],
-            title="총 지출 대비 펫 지출 분포",
-            labels={'total_spend': '총 지출 ($)', 'pet_spend': '펫 지출 ($)'}
-        )
-        st.plotly_chart(fig_scatter, use_container_width=True)
+        # 산점도를 표로 대체
+        spend_analysis = pet_customers[['household_key', 'pet_spend', 'total_spend', 'frequency_category']].head(10)
+        st.dataframe(spend_analysis)
+        
+        # 통계 정보
+        correlation = pet_customers['pet_spend'].corr(pet_customers['total_spend'])
+        st.write(f"📊 **펫 지출과 총 지출 상관관계**: {correlation:.3f}")
     
     # 주기상향 기회 분석
     st.subheader("🎯 주기상향 기회 분석")
@@ -247,18 +248,14 @@ if menu == "📊 대시보드":
     with col1:
         st.subheader("카테고리별 상향 잠재력")
         
-        fig_bar = px.bar(
-            frequency_changes.head(8),
-            x='category',
-            y='percentage_change',
-            title="주기상향 시 매출 증가율 (%)",
-            labels={'percentage_change': '증가율 (%)', 'category': '카테고리'},
-            color='percentage_change',
-            color_continuous_scale='Viridis'
-        )
-        # 올바른 방법으로 x축 각도 조정
-        fig_bar.update_layout(xaxis={'tickangle': 45})
-        st.plotly_chart(fig_bar, use_container_width=True)
+        # 막대 차트를 표로 대체
+        top_categories = frequency_changes.head(8)
+        chart_data = top_categories[['category', 'percentage_change']].set_index('category')
+        st.bar_chart(chart_data)
+        
+        # 상세 정보 표시
+        for _, row in top_categories.iterrows():
+            st.write(f"• **{row['category']}**: {row['percentage_change']:.1f}% 증가 (${row['sales_change']:.2f})")
     
     with col2:
         st.subheader("상향 대상 고객 식별")
@@ -268,15 +265,19 @@ if menu == "📊 대시보드":
             pet_customers['frequency_category'].isin(['저빈도', '월간'])
         ]
         
-        fig_hist = px.histogram(
-            upgrade_candidates,
-            x='pet_spend',
-            color='frequency_category',
-            title="상향 대상 고객의 펫 지출 분포",
-            labels={'pet_spend': '펫 지출 ($)', 'count': '고객 수'},
-            nbins=10
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
+        # 히스토그램을 표로 대체
+        st.write(f"**상향 대상 고객**: {len(upgrade_candidates)}명")
+        st.write(f"**평균 펫 지출**: ${upgrade_candidates['pet_spend'].mean():.2f}")
+        st.write(f"**Club+ 회원**: {upgrade_candidates['club_plus_member'].sum()}명")
+        
+        # 지출 구간별 분포
+        bins = [0, 25, 50, 100, 200]
+        labels = ['$0-25', '$25-50', '$50-100', '$100+']
+        upgrade_candidates['spend_range'] = pd.cut(upgrade_candidates['pet_spend'], bins=bins, labels=labels, include_lowest=True)
+        spend_dist = upgrade_candidates['spend_range'].value_counts()
+        
+        for range_label, count in spend_dist.items():
+            st.write(f"• **{range_label}**: {count}명")
 
 # 개인 고객 분석 페이지
 elif menu == "🎯 개인 고객 분석":
@@ -315,10 +316,12 @@ elif menu == "🎯 개인 고객 분석":
     # 구매 카테고리
     st.subheader("구매 펫 카테고리")
     categories = customer_data['pet_categories'].split(', ')
-    cols = st.columns(len(categories))
-    for i, category in enumerate(categories):
-        with cols[i]:
-            st.markdown(f"**{category}**")
+    for category in categories:
+        if '-' in category:
+            main_cat, sub_cat = category.split('-', 1)
+            st.write(f"• **{main_cat}**: {sub_cat}")
+        else:
+            st.write(f"• **{category}**")
     
     # 비교 분석
     st.subheader("동일 빈도 그룹 내 비교")
@@ -330,34 +333,24 @@ elif menu == "🎯 개인 고객 분석":
     col1, col2 = st.columns(2)
     
     with col1:
-        # 펫 지출 비교
-        fig_box = px.box(
-            same_frequency_customers,
-            y='pet_spend',
-            title=f"{current_frequency} 그룹 펫 지출 분포"
-        )
-        fig_box.add_hline(
-            y=customer_data['pet_spend'],
-            line_dash="dash",
-            line_color="red",
-            annotation_text=f"현재 고객: ${customer_data['pet_spend']:.2f}"
-        )
-        st.plotly_chart(fig_box, use_container_width=True)
+        st.write("**펫 지출 분포**")
+        pet_spend_stats = same_frequency_customers['pet_spend'].describe()
+        for stat, value in pet_spend_stats.items():
+            if stat in ['mean', 'std', 'min', 'max']:
+                st.write(f"• {stat}: ${value:.2f}")
+        
+        current_rank = (same_frequency_customers['pet_spend'] < customer_data['pet_spend']).sum() + 1
+        st.write(f"**현재 고객 순위**: {current_rank}/{len(same_frequency_customers)}위")
     
     with col2:
-        # 펫 지출 비율 비교
-        fig_box2 = px.box(
-            same_frequency_customers,
-            y='pet_ratio',
-            title=f"{current_frequency} 그룹 펫 지출 비율 분포"
-        )
-        fig_box2.add_hline(
-            y=customer_data['pet_ratio'],
-            line_dash="dash",
-            line_color="red",
-            annotation_text=f"현재 고객: {customer_data['pet_ratio']:.1f}%"
-        )
-        st.plotly_chart(fig_box2, use_container_width=True)
+        st.write("**펫 지출 비율 분포**")
+        ratio_stats = same_frequency_customers['pet_ratio'].describe()
+        for stat, value in ratio_stats.items():
+            if stat in ['mean', 'std', 'min', 'max']:
+                st.write(f"• {stat}: {value:.2f}%")
+        
+        ratio_rank = (same_frequency_customers['pet_ratio'] < customer_data['pet_ratio']).sum() + 1
+        st.write(f"**현재 고객 순위**: {ratio_rank}/{len(same_frequency_customers)}위")
 
 # 주기상향 추천 페이지
 elif menu == "📈 주기상향 추천":
@@ -440,7 +433,7 @@ elif menu == "📈 주기상향 추천":
                         with col_info1:
                             club_badge = "🌟 Club+" if customer['club_plus_member'] else "📱 일반"
                             st.write(f"**고객 {customer['household_key']}** {club_badge}")
-                            st.write(f"📱 {customer['phone_number']}")
+                            st.write(f"📱 {mask_phone_number(customer['phone_number'])}")
                         
                         with col_info2:
                             st.write(f"💰 펫 지출: ${customer['pet_spend']:.2f}")
@@ -471,7 +464,7 @@ elif menu == "📈 주기상향 추천":
                         st.success(f"Club+ 회원 {len(club_plus_customers)}명에게 푸쉬 발송 완료!")
                         with st.expander("발송 대상 확인"):
                             for _, customer in club_plus_customers.iterrows():
-                                st.write(f"📱 {customer['phone_number']} (고객 {customer['household_key']})")
+                                st.write(f"📱 {mask_phone_number(customer['phone_number'])} (고객 {customer['household_key']})")
                 
                 with col_push2:
                     if st.button("📱 전체 고객 발송"):
@@ -479,7 +472,7 @@ elif menu == "📈 주기상향 추천":
                         with st.expander("발송 대상 확인"):
                             for _, customer in target_customers.iterrows():
                                 club_status = "🌟 Club+" if customer['club_plus_member'] else "📱 일반"
-                                st.write(f"📱 {customer['phone_number']} (고객 {customer['household_key']}) {club_status}")
+                                st.write(f"📱 {mask_phone_number(customer['phone_number'])} (고객 {customer['household_key']}) {club_status}")
                 
                 with col_push3:
                     if st.button("📋 고객 데이터 다운로드"):
@@ -567,7 +560,7 @@ elif menu == "📈 주기상향 추천":
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.info(f"📱 연락처: {customer_detail['phone_number']}")
+            st.info(f"📱 연락처: {mask_phone_number(customer_detail['phone_number'])}")
         
         with col2:
             st.info(f"🛒 마지막 구매: {customer_detail['last_purchase_days']}일 전")
@@ -629,7 +622,7 @@ elif menu == "📈 주기상향 추천":
             with col_btn1:
                 if st.button("📱 푸쉬 발송", type="primary"):
                     st.success(f"고객 {selected_customer_id}님에게 푸쉬 발송 완료!")
-                    st.info(f"발송 번호: {customer_detail['phone_number']}")
+                    st.info(f"발송 번호: {mask_phone_number(customer_detail['phone_number'])}")
             
             with col_btn2:
                 if st.button("📧 이메일 발송"):
@@ -826,37 +819,8 @@ elif menu == "💰 수익 예측":
     
     results_df = pd.DataFrame(scenario_results)
     
-    # 차트 생성
-    fig = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=("시나리오별 총 수익 증가", "시나리오별 전환 고객 수"),
-        specs=[[{"secondary_y": False}, {"secondary_y": False}]]
-    )
-    
-    # 수익 증가 차트
-    fig.add_trace(
-        go.Bar(
-            x=results_df['scenario'],
-            y=results_df['total_revenue_increase'],
-            name="총 수익 증가",
-            marker_color='lightblue'
-        ),
-        row=1, col=1
-    )
-    
-    # 전환 고객 수 차트
-    fig.add_trace(
-        go.Bar(
-            x=results_df['scenario'],
-            y=results_df['converted_customers'],
-            name="전환 고객 수",
-            marker_color='lightgreen'
-        ),
-        row=1, col=2
-    )
-    
-    fig.update_layout(height=400, showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
+    # 차트를 표로 대체
+    st.dataframe(results_df)
     
     # 상세 테이블
     st.subheader("📊 상세 수익 예측 테이블")
