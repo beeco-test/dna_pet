@@ -29,12 +29,12 @@ def load_sample_data():
     # 실제 데이터 분포에 맞게 고객 생성 (초고빈도 포함)
     # 초고빈도는 현재 고객 중 일부가 이미 해당 빈도에 있음
     frequency_distribution = {
+        '초고빈도': 297      # 7+ transactions per month (기존 최고 빈도 고객들)
         '주간구매': 266,    # 5-6 transactions per month
         '월간구매': 237,    # 1-2 transactions per month  
         '고빈도': 139,      # 4 transactions per month
         '저빈도': 98,       # 3 transactions per month
         '한달이상': 87,     # <1 transaction per month
-        '초고빈도': 297      # 7+ transactions per month (기존 최고 빈도 고객들)
     }
     
     customer_count = sum(frequency_distribution.values())  # 827명
@@ -975,5 +975,6 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
 
