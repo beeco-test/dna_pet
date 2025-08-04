@@ -29,15 +29,15 @@ def load_sample_data():
     # 실제 데이터 분포에 맞게 고객 생성 (초고빈도 포함)
     # 초고빈도는 현재 고객 중 일부가 이미 해당 빈도에 있음
     frequency_distribution = {
-        '초고빈도': 297,     # 7+ transactions per month (기존 최고 빈도 고객들)
+        '초고빈도': 297,      # 7+ transactions per month (기존 최고 빈도 고객들)
         '주간구매': 266,    # 5-6 transactions per month
         '월간구매': 237,    # 1-2 transactions per month  
         '고빈도': 139,      # 4 transactions per month
         '저빈도': 98,       # 3 transactions per month
-        '한달이상': 87     # <1 transaction per month
+        '한달이상': 87,     # <1 transaction per month
     }
     
-    customer_count = sum(frequency_distribution.values())  # 827명
+    customer_count = sum(frequency_distribution.values())  # 1124명
     
     # 각 빈도별로 고객 생성
     household_keys = []
@@ -250,8 +250,17 @@ if menu == "📊 대시보드":
         st.metric("평균 펫 지출", f"£{avg_pet_spend:.2f}")
     
     with col4:
-        potential_revenue = frequency_changes['sales_change'].sum()
-        st.metric("상향이동 잠재 수익", f"£{potential_revenue:,.2f}")
+        # 함께 구매한 제품을 포함한 총매출 기준으로 상향이동 잠재 수익 계산
+        # 상향 가능 고객들의 총 지출을 기반으로 잠재 수익 산출
+        upgrade_candidates = pet_customers[
+            pet_customers['frequency_category'].isin(['저빈도', '월간구매', '한달이상'])
+        ] if 'frequency_category' in pet_customers.columns else pet_customers[
+            pet_customers['pet_transactions'].apply(classify_frequency).isin(['저빈도', '월간구매', '한달이상'])
+        ]
+        
+        # 상향 시 예상되는 총매출 증가분 (기존 총매출의 15% 증가 가정)
+        potential_total_revenue = upgrade_candidates['total_spend'].sum() * 0.15
+        st.metric("상향이동 잠재 수익", f"£{potential_total_revenue:,.2f}")
     
     st.markdown("---")
     
@@ -265,8 +274,8 @@ if menu == "📊 대시보드":
         pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
         frequency_counts = pet_customers['frequency_category'].value_counts()
         
-        # 빈도 순서 정의 (고객 수가 많은 순서대로)
-        frequency_order = ['주간구매', '월간구매', '고빈도', '저빈도', '한달이상', '초고빈도']
+        # 수정된 빈도 순서 정의 (요청된 순서대로)
+        frequency_order = ['초고빈도', '주간구매', '월간구매', '고빈도', '저빈도', '한달이상']
         frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
         
         # Streamlit 내장 차트 사용 (정렬된 순서로)
@@ -274,12 +283,12 @@ if menu == "📊 대시보드":
         
         # 상세 정보 표시 (초고빈도 포함)
         frequency_descriptions = {
+            '초고빈도': '0-4일 간격 (월 7회 이상)',
             '주간구매': '5-7일 간격 (월 4-6회)',
             '월간구매': '14-30일 간격 (월 1-2회)',
             '고빈도': '8-10일 간격 (월 3-4회)',
             '저빈도': '11-13일 간격 (월 2-3회)',
-            '한달이상': '30일+ 간격 (월 1회 미만)',
-            '초고빈도': '0-4일 간격 (월 7회 이상)'
+            '한달이상': '30일+ 간격 (월 1회 미만)'
         }
         
         for category in frequency_order:
@@ -300,8 +309,8 @@ if menu == "📊 대시보드":
         # 통계 정보
         top_customer = pet_customers.loc[pet_customers['total_spend'].idxmax()]
         avg_total_spend = pet_customers['total_spend'].mean()
-        st.write(f"👑 **최고 매출 고객**: 고객 {top_customer['household_key']} (${top_customer['total_spend']:,.2f})")
-        st.write(f"📊 **평균 총 매출**: ${avg_total_spend:,.2f}")        
+        st.write(f"👑 **최고 매출 고객**: 고객 {top_customer['household_key']} (£{top_customer['total_spend']:,.2f})")
+        st.write(f"📊 **평균 총 매출**: £{avg_total_spend:,.2f}")        
         
     # 주기상향 기회 분석
     st.subheader("🎯 주기상향 기회 분석")
@@ -331,6 +340,7 @@ if menu == "📊 대시보드":
         # 히스토그램을 표로 대체
         st.write(f"**상향 대상 고객**: {len(upgrade_candidates)}명")
         st.write(f"**평균 펫 지출**: £{upgrade_candidates['pet_spend'].mean():.2f}")
+        st.write(f"**평균 총 지출**: £{upgrade_candidates['total_spend'].mean():.2f}")
         st.write(f"**Club+ 회원**: {upgrade_candidates['club_plus_member'].sum()}명")
         
         # 지출 구간별 분포
@@ -836,47 +846,55 @@ elif menu == "💰 수익 예측":
             help="상향 효과를 측정할 기간"
         )
     
-    # 각 상향 단계별 예측 (초고빈도 포함)
+    # 각 상향 단계별 예측 (초고빈도 포함, 총매출 기반)
     scenarios = [
         {
             'name': '주간구매 → 초고빈도',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "주간구매"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 1.5
+            'avg_total_spend': pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "주간구매"]['total_spend'].mean(),
+            'increase_multiplier': 1.5  # 초고빈도로 상향 시 총매출 50% 증가 예상
         },
         {
             'name': '월간구매 → 저빈도',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "월간구매"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 1.1
+            'avg_total_spend': pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "월간구매"]['total_spend'].mean(),
+            'increase_multiplier': 1.1  # 저빈도로 상향 시 총매출 10% 증가 예상
         },
         {
             'name': '고빈도 → 주간구매',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "고빈도"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 1.3
+            'avg_total_spend': pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "고빈도"]['total_spend'].mean(),
+            'increase_multiplier': 1.3  # 주간구매로 상향 시 총매출 30% 증가 예상
         },
         {
             'name': '저빈도 → 고빈도',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "저빈도"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 1.2
+            'avg_total_spend': pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "저빈도"]['total_spend'].mean(),
+            'increase_multiplier': 1.2  # 고빈도로 상향 시 총매출 20% 증가 예상
         },
         {
             'name': '한달이상 → 월간구매',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "한달이상"]),
-            'avg_increase': frequency_changes['sales_change'].mean()
+            'avg_total_spend': pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "한달이상"]['total_spend'].mean(),
+            'increase_multiplier': 1.0  # 월간구매로 상향 시 현재 총매출 유지하면서 빈도 증가
         },
         {
             'name': '초고빈도 VIP 유지',
             'target_count': len(pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "초고빈도"]),
-            'avg_increase': frequency_changes['sales_change'].mean() * 2.0  # VIP 고객 프리미엄 서비스
+            'avg_total_spend': pet_customers[pet_customers['pet_transactions'].apply(classify_frequency) == "초고빈도"]['total_spend'].mean(),
+            'increase_multiplier': 2.0  # VIP 고객 프리미엄 서비스로 총매출 100% 증가 예상
         }
     ]
     
-    # 수익 예측 계산
+    # 수익 예측 계산 (총매출 기반)
     total_projected_revenue = 0
     scenario_results = []
     
     for scenario in scenarios:
         converted_customers = scenario['target_count'] * (conversion_rate / 100)
-        monthly_increase = converted_customers * scenario['avg_increase']
+        # 총매출 증가분 계산 (기존 총매출에서 증가분만)
+        monthly_increase_per_customer = scenario['avg_total_spend'] * (scenario['increase_multiplier'] - 1) / 12  # 월 단위로 변환
+        monthly_increase = converted_customers * monthly_increase_per_customer
         total_increase = monthly_increase * target_months
         total_projected_revenue += total_increase
         
@@ -884,6 +902,7 @@ elif menu == "💰 수익 예측":
             'scenario': scenario['name'],
             'target_customers': scenario['target_count'],
             'converted_customers': int(converted_customers),
+            'avg_total_spend': scenario['avg_total_spend'],
             'monthly_revenue_increase': monthly_increase,
             'total_revenue_increase': total_increase
         })
@@ -914,6 +933,7 @@ elif menu == "💰 수익 예측":
     st.subheader("📊 상세 수익 예측 테이블")
     
     display_df = results_df.copy()
+    display_df['avg_total_spend'] = display_df['avg_total_spend'].apply(lambda x: f"£{x:,.2f}")
     display_df['monthly_revenue_increase'] = display_df['monthly_revenue_increase'].apply(lambda x: f"£{x:,.2f}")
     display_df['total_revenue_increase'] = display_df['total_revenue_increase'].apply(lambda x: f"£{x:,.2f}")
     
@@ -921,6 +941,7 @@ elif menu == "💰 수익 예측":
         '상향 시나리오',
         '대상 고객 수',
         '예상 전환 고객',
+        '평균 총 지출',
         '월별 수익 증가',
         f'{target_months}개월 총 수익 증가'
     ]
@@ -975,7 +996,3 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
-
-
-
-
