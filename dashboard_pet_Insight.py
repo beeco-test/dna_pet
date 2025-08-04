@@ -260,7 +260,7 @@ if menu == "📊 대시보드":
         
         # 상향 시 예상되는 총매출 증가분 (기존 총매출의 15% 증가 가정)
         potential_total_revenue = upgrade_candidates['total_spend'].sum() * 0.15
-        st.metric("상향이동 잠재 총수익", f"£{potential_total_revenue:,.2f}")
+        st.metric("상향이동 잠재 수익", f"£{potential_total_revenue:,.2f}")
     
     st.markdown("---")
     
@@ -276,10 +276,14 @@ if menu == "📊 대시보드":
         
         # 수정된 빈도 순서 정의 (요청된 순서대로)
         frequency_order = ['초고빈도', '주간구매', '월간구매', '고빈도', '저빈도', '한달이상']
-        frequency_counts_sorted = frequency_counts.reindex(frequency_order, fill_value=0)
+        
+        # DataFrame으로 명시적 순서 지정
+        chart_data = pd.DataFrame({
+            '고객수': [frequency_counts.get(cat, 0) for cat in frequency_order]
+        }, index=frequency_order)
         
         # Streamlit 내장 차트 사용 (정렬된 순서로)
-        st.bar_chart(frequency_counts_sorted)
+        st.bar_chart(chart_data)
         
         # 상세 정보 표시 (초고빈도 포함)
         frequency_descriptions = {
@@ -996,4 +1000,3 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
-
