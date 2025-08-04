@@ -78,23 +78,23 @@ def load_sample_data():
         'DOG-사료/간식, CAT-모래/위생용품', 
         'DOG-장난감/액세서리, CAT-사료/간식',
         'DOG-사료/간식', 
-        'CAT-사료/간식, OTHER-새/조류용품',
+        'CAT-사료/간식, OTHER-가금류용 사료 및 용품',
         'DOG-건강관리/영양제, CAT-장난감/액세서리',
         'CAT-모래/위생용품',
         'DOG-사료/간식, OTHER-물고기/어항용품',
         'DOG-장난감/액세서리',
         'CAT-사료/간식',
         'DOG-건강관리/영양제, CAT-건강관리/영양제, OTHER-햄스터/소동물용품',
-        'DOG-사료/간식, CAT-사료/간식, OTHER-새/조류용품',
+        'DOG-사료/간식, CAT-사료/간식, OTHER-가금류용 사료 및 용품',
         'DOG-목줄/하네스/이동장',
         'CAT-모래/위생용품, OTHER-물고기/어항용품',
         'DOG-장난감/액세서리, CAT-모래/위생용품',
         'DOG-사료/간식, CAT-장난감/액세서리',
-        'OTHER-햄스터/소동물용품',
+        'OTHER-파충류 용품',
         'DOG-건강관리/영양제',
         'CAT-건강관리/영양제',
         'DOG-목줄/하네스/이동장, CAT-사료/간식',
-        'DOG-사료/간식, OTHER-새/조류용품'
+        'DOG-사료/간식, OTHER-가금류용 사료 및 용품'
     ]
     
     pet_categories = []
@@ -975,3 +975,4 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
