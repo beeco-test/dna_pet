@@ -260,7 +260,7 @@ if menu == "📊 대시보드":
         
         # 상향 시 예상되는 총매출 증가분 (기존 총매출의 15% 증가 가정)
         potential_total_revenue = upgrade_candidates['total_spend'].sum() * 0.15
-        st.metric("상향이동 잠재 수익", f"£{potential_total_revenue:,.2f}")
+        st.metric("상향이동 잠재 총수익", f"£{potential_total_revenue:,.2f}")
     
     st.markdown("---")
     
@@ -996,3 +996,4 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
