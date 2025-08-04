@@ -277,29 +277,13 @@ if menu == "📊 대시보드":
         # 수정된 빈도 순서 정의 (요청된 순서대로)
         frequency_order = ['초고빈도', '주간구매', '월간구매', '고빈도', '저빈도', '한달이상']
         
-        # 순서대로 데이터 정리
-        ordered_counts = [frequency_counts.get(cat, 0) for cat in frequency_order]
-        max_count = max(ordered_counts) if ordered_counts else 1
+        # DataFrame으로 명시적 순서 지정
+        chart_data = pd.DataFrame({
+            '고객수': [frequency_counts.get(cat, 0) for cat in frequency_order]
+        }, index=frequency_order)
         
-        # 시각적 막대 차트 (컬럼과 프로그레스 바 사용)
-        for i, (category, count) in enumerate(zip(frequency_order, ordered_counts)):
-            col_label, col_bar, col_count = st.columns([1, 3, 1])
-            with col_label:
-                st.write(f"**{category}**")
-            with col_bar:
-                progress = count / max_count if max_count > 0 else 0
-                st.progress(progress)
-            with col_count:
-                st.write(f"{count}명")
-        
-        # 백업용 데이터프레임 (순서 고정 시도)
-        try:
-            chart_df = pd.DataFrame({
-                'count': ordered_counts
-            }, index=frequency_order)
-            st.bar_chart(chart_df, height=200)
-        except:
-            pass  # 프로그레스 바로 대체
+        # Streamlit 내장 차트 사용 (정렬된 순서로)
+        st.bar_chart(chart_data)
         
         # 상세 정보 표시 (초고빈도 포함)
         frequency_descriptions = {
