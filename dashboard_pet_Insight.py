@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
 
 # 페이지 설정
 st.set_page_config(
@@ -281,17 +279,27 @@ if menu == "📊 대시보드":
         
         # 순서대로 데이터 정리
         ordered_counts = [frequency_counts.get(cat, 0) for cat in frequency_order]
+        max_count = max(ordered_counts) if ordered_counts else 1
         
-        # Plotly로 막대 차트 생성 (순서 고정)
-        fig = go.Figure(data=[
-            go.Bar(x=frequency_order, y=ordered_counts, marker_color='#1f77b4')
-        ])
-        fig.update_layout(
-            showlegend=False,
-            height=400,
-            margin=dict(l=0, r=0, t=0, b=0)
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # 시각적 막대 차트 (컬럼과 프로그레스 바 사용)
+        for i, (category, count) in enumerate(zip(frequency_order, ordered_counts)):
+            col_label, col_bar, col_count = st.columns([1, 3, 1])
+            with col_label:
+                st.write(f"**{category}**")
+            with col_bar:
+                progress = count / max_count if max_count > 0 else 0
+                st.progress(progress)
+            with col_count:
+                st.write(f"{count}명")
+        
+        # 백업용 데이터프레임 (순서 고정 시도)
+        try:
+            chart_df = pd.DataFrame({
+                'count': ordered_counts
+            }, index=frequency_order)
+            st.bar_chart(chart_df, height=200)
+        except:
+            pass  # 프로그레스 바로 대체
         
         # 상세 정보 표시 (초고빈도 포함)
         frequency_descriptions = {
@@ -332,24 +340,10 @@ if menu == "📊 대시보드":
     with col1:
         st.subheader("카테고리별 상향 잠재력")
         
-        # 막대 차트를 Plotly로 생성
+        # 막대 차트를 표로 대체
         top_categories = frequency_changes.head(8)
-        
-        fig = go.Figure(data=[
-            go.Bar(
-                x=top_categories['category'], 
-                y=top_categories['percentage_change'],
-                marker_color='#1f77b4'
-            )
-        ])
-        fig.update_layout(
-            showlegend=False,
-            height=400,
-            margin=dict(l=0, r=0, t=0, b=0),
-            xaxis_title="카테고리",
-            yaxis_title="증가율 (%)"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        chart_data = top_categories[['category', 'percentage_change']].set_index('category')
+        st.bar_chart(chart_data)
         
         # 상세 정보 표시
         for _, row in top_categories.iterrows():
