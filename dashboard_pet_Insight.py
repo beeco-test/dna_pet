@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 
 # 페이지 설정
 st.set_page_config(
@@ -277,13 +279,19 @@ if menu == "📊 대시보드":
         # 수정된 빈도 순서 정의 (요청된 순서대로)
         frequency_order = ['초고빈도', '주간구매', '월간구매', '고빈도', '저빈도', '한달이상']
         
-        # DataFrame으로 명시적 순서 지정
-        chart_data = pd.DataFrame({
-            '고객수': [frequency_counts.get(cat, 0) for cat in frequency_order]
-        }, index=frequency_order)
+        # 순서대로 데이터 정리
+        ordered_counts = [frequency_counts.get(cat, 0) for cat in frequency_order]
         
-        # Streamlit 내장 차트 사용 (정렬된 순서로)
-        st.bar_chart(chart_data)
+        # Plotly로 막대 차트 생성 (순서 고정)
+        fig = go.Figure(data=[
+            go.Bar(x=frequency_order, y=ordered_counts, marker_color='#1f77b4')
+        ])
+        fig.update_layout(
+            showlegend=False,
+            height=400,
+            margin=dict(l=0, r=0, t=0, b=0)
+        )
+        st.plotly_chart(fig, use_container_width=True)
         
         # 상세 정보 표시 (초고빈도 포함)
         frequency_descriptions = {
@@ -324,10 +332,24 @@ if menu == "📊 대시보드":
     with col1:
         st.subheader("카테고리별 상향 잠재력")
         
-        # 막대 차트를 표로 대체
+        # 막대 차트를 Plotly로 생성
         top_categories = frequency_changes.head(8)
-        chart_data = top_categories[['category', 'percentage_change']].set_index('category')
-        st.bar_chart(chart_data)
+        
+        fig = go.Figure(data=[
+            go.Bar(
+                x=top_categories['category'], 
+                y=top_categories['percentage_change'],
+                marker_color='#1f77b4'
+            )
+        ])
+        fig.update_layout(
+            showlegend=False,
+            height=400,
+            margin=dict(l=0, r=0, t=0, b=0),
+            xaxis_title="카테고리",
+            yaxis_title="증가율 (%)"
+        )
+        st.plotly_chart(fig, use_container_width=True)
         
         # 상세 정보 표시
         for _, row in top_categories.iterrows():
