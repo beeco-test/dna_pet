@@ -34,7 +34,7 @@ def load_sample_data():
         '고빈도': 139,      # 4 transactions per month
         '저빈도': 98,       # 3 transactions per month
         '한달이상': 87,     # <1 transaction per month
-        '초고빈도': 60      # 7+ transactions per month (기존 최고 빈도 고객들)
+        '초고빈도': 297      # 7+ transactions per month (기존 최고 빈도 고객들)
     }
     
     customer_count = sum(frequency_distribution.values())  # 827명
@@ -975,4 +975,5 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
