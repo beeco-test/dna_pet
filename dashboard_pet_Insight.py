@@ -233,7 +233,7 @@ def mask_phone_number(phone_number):
 
 # 대시보드 페이지
 if menu == "📊 대시보드":
-    st.title("🐾펫 고객 주기상향 추천서비스")
+    st.title("🐾Dashboard")
     
     # 주요 지표
     col1, col2, col3, col4 = st.columns(4)
@@ -1000,4 +1000,5 @@ with st.sidebar.expander("❓ 사용법 안내"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("🐾펫고객관리시스템")
 st.sidebar.markdown("*Powered by Streamlit*")
+
 
