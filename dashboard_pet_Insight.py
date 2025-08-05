@@ -4,14 +4,14 @@ import numpy as np
 
 # 페이지 설정
 st.set_page_config(
-    page_title="펫 고객 주기상향 추천서비스",
+    page_title="펫고객관리시스템",
     page_icon="🐾",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # 사이드바 설정
-st.sidebar.title("🐾 펫 고객 주기상향 추천서비스")
+st.sidebar.title("🐾펫고객관리시스템")
 st.sidebar.markdown("---")
 
 # 메뉴 선택
@@ -233,7 +233,7 @@ def mask_phone_number(phone_number):
 
 # 대시보드 페이지
 if menu == "📊 대시보드":
-    st.title("🐾 펫 고객 주기상향 추천서비스 대시보드")
+    st.title("🐾펫 고객 주기상향 추천서비스")
     
     # 주요 지표
     col1, col2, col3, col4 = st.columns(4)
@@ -998,5 +998,6 @@ with st.sidebar.expander("❓ 사용법 안내"):
 
 # 푸터
 st.sidebar.markdown("---")
-st.sidebar.markdown("🐾 **펫 고객 주기상향 추천서비스**")
+st.sidebar.markdown("🐾펫고객관리시스템")
 st.sidebar.markdown("*Powered by Streamlit*")
+
