@@ -1,53 +1,33 @@
-죄송합니다, 오류가 발생했군요. 제가 제공한 설명 부분이 코드와 함께 복사되어 파이썬 파일에 들어간 것 같습니다.
+다시 한번 죄송합니다. 제가 드리는 설명 문장까지 코드에 포함하여 복사-붙여넣기를 하시면서 오류가 계속 발생하는 것 같습니다.
 
-오류 원인
+오류의 원인은 파이썬 코드가 아닌, 제가 작성한 한글 설명이 코드 파일 안에 그대로 들어갔기 때문입니다. 파이썬 파일(.py)에는 오직 파이썬 문법에 맞는 코드만 있어야 합니다.
 
-SyntaxError: invalid character '📋' (U+1F4CB) 오류는 파이썬 코드 파일(.py)에 코드 형식이 아닌 일반 텍스트 설명이 포함되었기 때문에 발생합니다. 파이썬 인터프리터는 📋 고객 리스트... 와 같은 줄을 코드로 인식하려고 시도하다가 문법에 맞지 않아 오류를 발생시키는 것입니다.
+이번에는 반드시 문제를 해결하실 수 있도록, 가장 중요한 점을 먼저 강조하겠습니다.
 
-파이썬에서 설명을 추가하려면 반드시 줄 시작 부분에 # 기호를 붙여 **주석(comment)**으로 처리해야 합니다.
+중요: dashboard_pet_Insight.py 파일의 모든 내용을 지우고, 아래에 제가 드리는 코드 블록의 내용만 정확히 복사해서 붙여넣어 주세요.
 
-해결 방법
+해결을 위한 단계별 안내
 
-오류가 발생한 부분을 포함하여, 코드 파일 상단에 있을 수 있는 다음과 같은 설명 줄들을 모두 삭제하거나, 각 줄 앞에 #을 붙여 주석으로 만들어주세요.
+dashboard_pet_Insight.py 파일을 엽니다.
 
-잘못된 예시 (오류 발생):
+파일 안의 모든 내용을 삭제합니다. (키보드에서 Ctrl + A를 눌러 전체 선택 후 Delete 키를 누르면 쉽습니다.)
 
-code
-Python
-download
-content_copy
-expand_less
+아래에 있는 --- 코드 시작 --- 부터 --- 코드 끝 --- 까지의 내용만 정확히 복사합니다. (설명글은 절대 복사하지 마세요.)
 
-# (파일 상단 어딘가에...)
-1. 📋 고객 리스트: 다양한 조건(구매 빈도, 펫 유형, 지출액 등)으로 고객을 필터링하고 검색할 수 있습니다.
-2. 📝 메시지 작성: 개별 또는 다수의 고객을 선택하고...
+이제 비어있는 dashboard_pet_Insight.py 파일에 붙여넣기 합니다.
 
-올바른 예시 (주석 처리):
+파일을 저장하고 다시 실행해 보세요.
+
+[복사할 내용] 전체 코드
+
+--- 코드 시작 ---
 
 code
 Python
 download
 content_copy
 expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
-# (파일 상단 어딘가에...)
-# 1. 📋 고객 리스트: 다양한 조건(구매 빈도, 펫 유형, 지출액 등)으로 고객을 필터링하고 검색할 수 있습니다.
-# 2. 📝 메시지 작성: 개별 또는 다수의 고객을 선택하고...
 
-가장 확실한 방법은, 파일의 모든 내용을 지우고 아래의 전체 코드로 다시 붙여넣는 것입니다. 아래 코드는 설명 부분 없이 순수한 파이썬 코드로만 구성되어 있습니다.
-
-수정된 전체 코드
-
-아래의 코드를 복사하여 dashboard_pet_Insight.py 파일의 모든 내용을 교체해주세요.
-
-code
-Python
-download
-content_copy
-expand_less
-IGNORE_WHEN_COPYING_START
-IGNORE_WHEN_COPYING_END
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -518,7 +498,8 @@ def send_message_simulation(customer_data, message_content, message_type):
 # 대시보드 페이지
 if menu == "📊 대시보드":
     st.title("🐾Dashboard")
-    pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
+    if 'frequency_category' not in pet_customers.columns:
+        pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
     
     # 주요 지표
     col1, col2, col3, col4 = st.columns(4)
@@ -684,10 +665,10 @@ elif menu == "🎯 개인 고객 분석":
     
     # 동일 빈도 그룹 내 비교 (총매출 추가)
     st.subheader("📊 동일 빈도 그룹 내 비교")
+    if 'frequency_category' not in pet_customers.columns:
+        pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
     
-    same_frequency_customers = pet_customers[
-        pet_customers['pet_transactions'].apply(classify_frequency) == current_frequency
-    ]
+    same_frequency_customers = pet_customers[pet_customers['frequency_category'] == current_frequency]
     
     col1, col2, col3 = st.columns(3)
     
@@ -766,7 +747,8 @@ elif menu == "🎯 개인 고객 분석":
 # 주기상향 추천 페이지
 elif menu == "📈 주기상향 추천":
     st.title("📈 주기상향 추천")
-    pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
+    if 'frequency_category' not in pet_customers.columns:
+        pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
     
     upgrade_path = st.selectbox(
         "상향 경로를 선택하세요:",
@@ -829,7 +811,8 @@ elif menu == "📈 주기상향 추천":
 elif menu == "💰 수익 예측":
     st.title("💰 수익 예측 분석")
     st.subheader("📈 주기상향 시나리오별 수익 예측")
-    pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
+    if 'frequency_category' not in pet_customers.columns:
+        pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
     
     col1, col2 = st.columns(2)
     
@@ -876,19 +859,20 @@ elif menu == "💰 수익 예측":
     with col1:
         st.metric("총 예상 수익 증가", f"£{total_projected_revenue:,.2f}")
     with col2:
-        total_converted = sum([r['전환 예상'] for r in scenario_results])
+        total_converted = sum([r['전환 예상'] for r in scenario_results]) if scenario_results else 0
         st.metric("총 전환 예상 고객", f"{total_converted}명")
     with col3:
         monthly_avg = total_projected_revenue / target_months if target_months > 0 else 0
         st.metric("월평균 수익 증가", f"£{monthly_avg:,.2f}")
     
     st.subheader("📋 시나리오별 상세 예측")
-    results_df = pd.DataFrame(scenario_results)
-    st.dataframe(results_df.style.format({
-        '평균 총 지출(£)': "£{:.2f}",
-        '월 예상 수익 증가(£)': "£{:.2f}",
-        '총 예상 수익 증가(£)': "£{:.2f}"
-    }))
+    if scenario_results:
+        results_df = pd.DataFrame(scenario_results)
+        st.dataframe(results_df.style.format({
+            '평균 총 지출(£)': "£{:.2f}",
+            '월 예상 수익 증가(£)': "£{:.2f}",
+            '총 예상 수익 증가(£)': "£{:.2f}"
+        }))
 
 # 재고관리 페이지
 elif menu == "📦 재고관리":
@@ -929,17 +913,19 @@ elif menu == "📦 재고관리":
     
     st.dataframe(inventory_df, use_container_width=True)
 
-# 고객 메시지 페이지 (새로 추가)
+# 고객 메시지 페이지
 elif menu == "📧 고객 메시지":
     st.title("📧 고객 메시지 관리")
     
     # 메뉴 탭 설정
     tab1, tab2, tab3 = st.tabs(["📋 고객 리스트", "📝 메시지 작성", "📊 발송 기록"])
     
-    # 세션 상태 초기화 (메시지 기록용)
+    # 세션 상태 초기화
     if 'message_history' not in st.session_state:
         st.session_state.message_history = []
-    
+    if 'filtered_customers_for_messaging' not in st.session_state:
+        st.session_state.filtered_customers_for_messaging = pd.DataFrame()
+
     # 공통 데이터 로딩
     if 'frequency_category' not in pet_customers.columns:
         pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
@@ -952,13 +938,13 @@ elif menu == "📧 고객 메시지":
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            frequency_filter = st.selectbox("구매 빈도 필터", ["전체"] + pet_customers['frequency_category'].unique().tolist())
+            frequency_filter = st.selectbox("구매 빈도 필터", ["전체"] + pet_customers['frequency_category'].unique().tolist(), key="tab1_freq")
         with col2:
-            pet_profile_filter = st.selectbox("반려동물 유형", ["전체"] + sorted(pet_customers['pet_profile'].unique().tolist()))
+            pet_profile_filter = st.selectbox("반려동물 유형", ["전체"] + sorted(pet_customers['pet_profile'].unique().tolist()), key="tab1_profile")
         with col3:
-            club_filter = st.selectbox("Club+ 회원", ["전체", "Club+ 회원", "일반 회원"])
+            club_filter = st.selectbox("Club+ 회원", ["전체", "Club+ 회원", "일반 회원"], key="tab1_club")
         with col4:
-            spend_filter = st.selectbox("펫 지출 구간", ["전체", "£0-50", "£50-100", "£100-150", "£150+"])
+            spend_filter = st.selectbox("펫 지출 구간", ["전체", "£0-50", "£50-100", "£100-150", "£150+"], key="tab1_spend")
         
         # 고객 데이터 필터링
         filtered_customers = pet_customers.copy()
@@ -975,7 +961,7 @@ elif menu == "📧 고객 메시지":
             low, high = int(low_str), int(high_str)
             filtered_customers = filtered_customers[filtered_customers['pet_spend'].between(low, high)]
         
-        search_term = st.text_input("🔍 고객명 또는 ID 검색", placeholder="고객명 또는 고객 ID를 입력하세요")
+        search_term = st.text_input("🔍 고객명 또는 ID 검색", placeholder="고객명 또는 고객 ID를 입력하세요", key="tab1_search")
         if search_term:
             mask = (filtered_customers['customer_name'].str.contains(search_term, case=False, na=False) |
                     filtered_customers['household_key'].astype(str).str.contains(search_term, na=False))
@@ -1005,19 +991,18 @@ elif menu == "📧 고객 메시지":
         
         with col1:
             st.markdown("#### 📋 고객 선택")
-            selection_method = st.radio("고객 선택 방식", ["개별 선택", "필터된 고객 전체"])
+            selection_method = st.radio("고객 선택 방식", ["개별 선택", "필터된 고객 전체"], key="msg_selection")
             
+            target_customers_for_msg = pd.DataFrame()
             if selection_method == "개별 선택":
                 customer_list = pet_customers.apply(lambda row: f"{row['customer_name']} (ID: {row['household_key']})", axis=1).tolist()
-                selected_customer_str = st.selectbox("메시지를 보낼 고객을 선택하세요:", customer_list)
-                selected_customer_id = int(selected_customer_str.split('ID: ')[1][:-1])
-                target_customers_for_msg = pet_customers[pet_customers['household_key'] == selected_customer_id]
+                selected_customer_str = st.selectbox("메시지를 보낼 고객을 선택하세요:", customer_list, key="msg_customer_select")
+                if selected_customer_str:
+                    selected_customer_id = int(selected_customer_str.split('ID: ')[1][:-1])
+                    target_customers_for_msg = pet_customers[pet_customers['household_key'] == selected_customer_id]
             else:
                 st.write("**'고객 리스트' 탭에서 필터링된 고객 대상**")
-                if 'filtered_customers_for_messaging' in st.session_state:
-                    target_customers_for_msg = st.session_state.filtered_customers_for_messaging
-                else:
-                    target_customers_for_msg = pd.DataFrame() # 빈 데이터프레임
+                target_customers_for_msg = st.session_state.get('filtered_customers_for_messaging', pd.DataFrame())
                 st.info(f"**선택된 고객 수**: {len(target_customers_for_msg)}명")
 
             if not target_customers_for_msg.empty:
@@ -1032,16 +1017,17 @@ elif menu == "📧 고객 메시지":
         
         with col2:
             st.markdown("#### 📝 메시지 작성")
-            template_choice = st.selectbox("메시지 템플릿 선택", ["직접 작성"] + list(MESSAGE_TEMPLATES.keys()))
+            template_choice = st.selectbox("메시지 템플릿 선택", ["직접 작성"] + list(MESSAGE_TEMPLATES.keys()), key="msg_template")
             
+            message_content = ""
             if template_choice == "직접 작성":
-                message_content = st.text_area("메시지 내용", height=200, placeholder="개인화 변수: {customer_name}, {pet_profile} 등")
+                message_content = st.text_area("메시지 내용", height=200, placeholder="개인화 변수: {customer_name}, {pet_profile} 등", key="msg_direct_input")
             else:
                 template = MESSAGE_TEMPLATES[template_choice]
                 if not target_customers_for_msg.empty and len(target_customers_for_msg) == 1:
                     preview_message = personalize_message(template, target_customers_for_msg.iloc[0])
                     st.write("**메시지 미리보기:**"); st.info(preview_message)
-                message_content = st.text_area("메시지 내용 (편집 가능)", value=template, height=200)
+                message_content = st.text_area("메시지 내용 (편집 가능)", value=template, height=200, key="msg_template_edit")
             
             if st.button("📤 메시지 발송", type="primary"):
                 if message_content and not target_customers_for_msg.empty:
@@ -1049,14 +1035,15 @@ elif menu == "📧 고객 메시지":
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
+                    total_customers = len(target_customers_for_msg)
                     for idx, (_, customer) in enumerate(target_customers_for_msg.iterrows()):
                         personalized_msg = personalize_message(message_content, customer)
                         record = send_message_simulation(customer, personalized_msg, template_choice if template_choice != "직접 작성" else "맞춤 메시지")
                         st.session_state.message_history.append(record)
                         if record['status'] == "발송 성공": success_count += 1
                         else: failure_count += 1
-                        progress_bar.progress((idx + 1) / len(target_customers_for_msg))
-                        status_text.text(f"발송 중... ({idx + 1}/{len(target_customers_for_msg)})")
+                        progress_bar.progress((idx + 1) / total_customers)
+                        status_text.text(f"발송 중... ({idx + 1}/{total_customers})")
                     
                     status_text.empty(); progress_bar.empty()
                     st.success(f"✅ 발송 성공: {success_count}명")
@@ -1089,3 +1076,5 @@ elif menu == "📧 고객 메시지":
             st.dataframe(display_history, use_container_width=True)
         else:
             st.info("아직 발송된 메시지가 없습니다.")
+
+--- 코드 끝 ---
