@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # 사이드바 설정
-st.sidebar.title("🐾펫고객관리시스템(PCMS)")
+st.sidebar.title("🐾펫고객관리시스템")
 st.sidebar.markdown("---")
 
 # 메뉴 선택 (메시지 기능 추가)
@@ -213,11 +213,6 @@ def load_sample_data():
     pet_categories = []
     household_sizes = []
     pet_profiles = []
-    customer_names = []
-    
-    # 한국 이름 샘플
-    surnames = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임']
-    given_names = ['민수', '지영', '서준', '하윤', '예준', '소율', '시우', '서연', '도윤', '서현']
     
     for i in range(customer_count):
         # 각 고객별로 1-3개의 카테고리를 랜덤 선택
@@ -231,15 +226,9 @@ def load_sample_data():
         
         # 펫 프로필 추정
         pet_profiles.append(estimate_pet_profile(category_str, pet_spend[i]))
-        
-        # 고객 이름 생성
-        surname = np.random.choice(surnames)
-        given_name = np.random.choice(given_names)
-        customer_names.append(f"{surname}{given_name}")
     
     pet_customers = pd.DataFrame({
         'household_key': household_keys,
-        'customer_name': customer_names,
         'pet_transactions': pet_transactions,
         'pet_spend': pet_spend,
         'total_spend': total_spend,
@@ -252,6 +241,9 @@ def load_sample_data():
         'phone_number': [f"010-{np.random.randint(1000,9999)}-{np.random.randint(1000,9999)}" for _ in range(customer_count)]
     })
     
+    # === 이름 익명화 처리 ===
+    pet_customers['customer_name'] = pet_customers['household_key'].apply(lambda x: f"고객 {x}")
+
     # 주기상향 변화 데이터 샘플
     frequency_changes = pd.DataFrame({
         'category': ['BEEF', 'SOFT DRINKS', 'FRZN MEAT/MEAT DINNERS', 'FROZEN PIZZA', 'CHEESE', 'FLUID MILK PRODUCTS', 'BAG SNACKS', 'BAKED BREAD/BUNS/ROLLS', 'PORK', 'CIGARETTES'],
@@ -350,76 +342,6 @@ def classify_frequency(monthly_transactions):
         return "주간구매"
     else:
         return "초고빈도"
-
-# 고객별 인사이트 생성 함수
-def generate_customer_insights(customer_data, target_customers):
-    insights = []
-    marketing_tips = []
-    
-    # 펫 지출 비율 분석
-    avg_pet_ratio = target_customers['pet_ratio'].mean()
-    if customer_data['pet_ratio'] < avg_pet_ratio * 0.8:
-        insights.append(f"고객 {customer_data['household_key']}는 **전체적으로 펫 관련 소비 비중이 낮은 편**입니다.")
-        marketing_tips.append("🎯 **펫 관련 프로모션 타겟**: 현재는 관심은 있지만 지출이 낮은 고객 → 할인이나 번들 제안으로 지출 유도 가능.")
-    elif customer_data['pet_ratio'] > avg_pet_ratio * 1.2:
-        insights.append(f"고객 {customer_data['household_key']}는 **펫 관련 소비 비중이 매우 높은 편**입니다.")
-        marketing_tips.append("🌟 **VIP 펫 고객 관리**: 고가치 펫 고객으로 프리미엄 서비스 및 신상품 우선 제안 가능.")
-    
-    # 구매 빈도 분석
-    frequency = classify_frequency(customer_data['pet_transactions'])
-    if frequency == "주간구매":
-        insights.append("주간으로 꾸준히 구매를 하지만, **펫 관련 상품에는 비교적 적은 비용을 지출**합니다.")
-        marketing_tips.append("⏱️ **빈도 기반 추천**: 주간 구매자이므로, 펫 관련 **정기배송 제안**이나 **구독형 서비스** 유도 가능.")
-    elif frequency == "월간구매":
-        insights.append("월간 단위로 구매하는 **안정적인 구매 패턴**을 보입니다.")
-        marketing_tips.append("📅 **정기 구매 유도**: 월간 구매 패턴을 활용한 정기배송 할인 혜택 제안.")
-    elif frequency == "고빈도":
-        insights.append("**고빈도로 펫 제품을 구매**하는 충성도 높은 고객입니다.")
-        marketing_tips.append("💎 **로열티 강화**: 고빈도 구매 고객으로 VIP 혜택 및 리워드 프로그램 제안.")
-    elif frequency == "초고빈도":
-        insights.append("**최고 빈도로 펫 제품을 구매**하는 VIP 고객입니다.")
-        marketing_tips.append("👑 **VIP 고객 관리**: 초고빈도 고객으로 프리미엄 서비스, 얼리액세스, 개인 컨시어지 서비스 제공.")
-    
-    # 지출 패턴 분석
-    avg_pet_spend = target_customers['pet_spend'].mean()
-    if customer_data['pet_spend'] < avg_pet_spend * 0.7:
-        insights.append("**단가가 낮거나 빈도가 적은 구매 패턴**으로 보입니다.")
-        marketing_tips.append("💰 **단가 상승 전략**: 프리미엄 제품 체험 기회 제공 및 번들 상품 추천.")
-    elif customer_data['pet_spend'] > avg_pet_spend * 1.3:
-        insights.append("**높은 금액대의 펫 제품을 구매**하는 프리미엄 고객입니다.")
-        marketing_tips.append("🏆 **프리미엄 서비스**: 고가 상품 선호 고객으로 신상품 런칭 시 우선 안내.")
-    
-    # 카테고리 다양성 분석
-    categories = customer_data['pet_categories'].split(', ')
-    unique_main_categories = set()
-    for cat in categories:
-        if '-' in cat:
-            main_cat = cat.split('-')[0]
-            unique_main_categories.add(main_cat)
-    
-    if len(unique_main_categories) >= 3:
-        insights.append(f"다양한 펫 카테고리({', '.join(unique_main_categories)})에 관심이 있는 **종합적인 펫 케어** 고객입니다.")
-        marketing_tips.append("🔍 **카테고리 맞춤 리타게팅**: 다양한 카테고리 구매로 고객 맞춤형 크로스셀링 기회 높음.")
-    elif len(unique_main_categories) == 2:
-        insights.append(f"주로 {', '.join(unique_main_categories)} 카테고리에 집중된 **특화된 관심사**를 보입니다.")
-        marketing_tips.append("🎯 **전문화 전략**: 특정 카테고리 전문가로 해당 분야 신상품 및 전문 서비스 제안.")
-    else:
-        insights.append(f"{list(unique_main_categories)[0]} 카테고리에 **집중된 구매 패턴**을 보입니다.")
-        marketing_tips.append("📈 **카테고리 확장**: 현재 관심 카테고리에서 연관 상품으로 구매 범위 확대 유도.")
-    
-    # Club+ 회원 여부 분석
-    if customer_data['club_plus_member']:
-        insights.append("**Club+ 회원**으로 브랜드 충성도가 높은 우수 고객입니다.")
-        marketing_tips.append("🌟 **멤버십 혜택 활용**: Club+ 전용 이벤트 및 얼리버드 혜택으로 만족도 증대.")
-    else:
-        marketing_tips.append("💳 **Club+ 가입 유도**: 현재 구매 패턴 기반으로 멤버십 가입 혜택 어필.")
-    
-    # 최근 구매일 분석
-    if customer_data['last_purchase_days'] > 30:
-        insights.append(f"마지막 구매가 **{customer_data['last_purchase_days']}일 전**으로 재방문 유도가 필요합니다.")
-        marketing_tips.append("🔔 **재방문 유도**: 개인화된 할인 쿠폰 및 리마인드 푸쉬로 재방문 촉진.")
-    
-    return insights, marketing_tips
 
 # 전화번호 마스킹 함수
 def mask_phone_number(phone_number):
@@ -526,7 +448,7 @@ if menu == "📊 대시보드":
     with col2:
         st.subheader("💰 펫고객별 총매출 순위")
         
-        spend_analysis_sorted = pet_customers[['household_key', 'customer_name', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False) 
+        spend_analysis_sorted = pet_customers[['customer_name', 'pet_spend', 'total_spend', 'frequency_category']].sort_values('total_spend', ascending=False) 
         st.dataframe(spend_analysis_sorted.head(10))
         
         top_customer = pet_customers.loc[pet_customers['total_spend'].idxmax()]
@@ -571,17 +493,17 @@ if menu == "📊 대시보드":
 elif menu == "🎯 개인 고객 분석":
     st.title("🎯 개인 고객 분석")
     
-    # 고객 선택
-    selected_customer = st.selectbox(
+    # 고객 선택 (익명화)
+    selected_customer_id = st.selectbox(
         "분석할 고객을 선택하세요:",
         pet_customers['household_key'].tolist(),
-        format_func=lambda x: f"고객 ID: {x} ({pet_customers[pet_customers['household_key']==x]['customer_name'].iloc[0]})"
+        format_func=lambda x: f"고객 {x}"
     )
     
     # 선택된 고객 정보
-    customer_data = pet_customers[pet_customers['household_key'] == selected_customer].iloc[0]
+    customer_data = pet_customers[pet_customers['household_key'] == selected_customer_id].iloc[0]
     
-    st.subheader(f"고객 {selected_customer} ({customer_data['customer_name']}) 상세 분석")
+    st.subheader(f"{customer_data['customer_name']} 상세 분석")
     
     # 기본 지표 (5개 컬럼으로 확장)
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -931,10 +853,9 @@ elif menu == "📧 고객 메시지":
             low, high = int(low_str), int(high_str)
             filtered_customers = filtered_customers[filtered_customers['pet_spend'].between(low, high)]
         
-        search_term = st.text_input("🔍 고객명 또는 ID 검색", placeholder="고객명 또는 고객 ID를 입력하세요", key="tab1_search")
+        search_term = st.text_input("🔍 고객 ID 검색", placeholder="고객 ID를 입력하세요", key="tab1_search")
         if search_term:
-            mask = (filtered_customers['customer_name'].str.contains(search_term, case=False, na=False) |
-                    filtered_customers['household_key'].astype(str).str.contains(search_term, na=False))
+            mask = filtered_customers['customer_name'].str.contains(search_term, case=False, na=False)
             filtered_customers = filtered_customers[mask]
         
         st.metric("필터링된 고객 수", f"{len(filtered_customers):,}명")
@@ -942,10 +863,10 @@ elif menu == "📧 고객 메시지":
         st.markdown("---")
         if not filtered_customers.empty:
             display_df = filtered_customers[[
-                'household_key', 'customer_name', 'pet_profile', 'frequency_category',
+                'customer_name', 'pet_profile', 'frequency_category',
                 'pet_spend', 'club_plus_member', 'last_purchase_days'
             ]].copy()
-            display_df.columns = ['고객ID', '고객명', '반려동물', '구매빈도', '펫지출(£)', 'Club+', '미방문일']
+            display_df.columns = ['고객명', '반려동물', '구매빈도', '펫지출(£)', 'Club+', '미방문일']
             display_df['Club+'] = display_df['Club+'].apply(lambda x: "🌟" if x else "📱")
             st.dataframe(display_df, use_container_width=True, height=400)
         else:
@@ -965,10 +886,13 @@ elif menu == "📧 고객 메시지":
             
             target_customers_for_msg = pd.DataFrame()
             if selection_method == "개별 선택":
-                customer_list = pet_customers.apply(lambda row: f"{row['customer_name']} (ID: {row['household_key']})", axis=1).tolist()
-                selected_customer_str = st.selectbox("메시지를 보낼 고객을 선택하세요:", customer_list, key="msg_customer_select")
-                if selected_customer_str:
-                    selected_customer_id = int(selected_customer_str.split('ID: ')[1][:-1])
+                selected_customer_id = st.selectbox(
+                    "메시지를 보낼 고객을 선택하세요:",
+                    pet_customers['household_key'].tolist(),
+                    format_func=lambda x: f"고객 {x}",
+                    key="msg_customer_select"
+                )
+                if selected_customer_id:
                     target_customers_for_msg = pet_customers[pet_customers['household_key'] == selected_customer_id]
             else:
                 st.write("**'고객 리스트' 탭에서 필터링된 고객 대상**")
@@ -1046,4 +970,3 @@ elif menu == "📧 고객 메시지":
             st.dataframe(display_history, use_container_width=True)
         else:
             st.info("아직 발송된 메시지가 없습니다.")
-
