@@ -1,18 +1,16 @@
-네, 알겠습니다. 제공해주신 pet_crm_with_messaging.py 파일에 고객 리스트를 확인하고 필터링하며, 선택된 고객에게 개인화된 메시지를 발송하고 기록을 관리하는 기능을 추가하겠습니다.
+죄송합니다, 오류가 발생했군요. 제가 제공한 설명 부분이 코드와 함께 복사되어 파이썬 파일에 들어간 것 같습니다.
 
-새로운 "📧 고객 메시지" 메뉴를 생성하고, 이 페이지는 탭을 사용하여 다음 세 가지 주요 기능으로 구성됩니다.
+오류 원인
 
-📋 고객 리스트: 다양한 조건(구매 빈도, 펫 유형, 지출액 등)으로 고객을 필터링하고 검색할 수 있습니다.
+SyntaxError: invalid character '📋' (U+1F4CB) 오류는 파이썬 코드 파일(.py)에 코드 형식이 아닌 일반 텍스트 설명이 포함되었기 때문에 발생합니다. 파이썬 인터프리터는 📋 고객 리스트... 와 같은 줄을 코드로 인식하려고 시도하다가 문법에 맞지 않아 오류를 발생시키는 것입니다.
 
-📝 메시지 작성: 개별 또는 다수의 고객을 선택하고, 템플릿을 활용하거나 직접 작성하여 개인화된 메시지를 발송할 수 있습니다. (발송 시뮬레이션)
+파이썬에서 설명을 추가하려면 반드시 줄 시작 부분에 # 기호를 붙여 **주석(comment)**으로 처리해야 합니다.
 
-📊 발송 기록: 메시지 발송 성공/실패 여부와 내용을 포함한 전체 이력을 확인하고 분석할 수 있습니다.
+해결 방법
 
-기존 코드에 새로운 기능을 통합하고 필요한 헬퍼 함수 및 데이터 구조를 추가하여 완성된 코드를 아래에 제공합니다.
+오류가 발생한 부분을 포함하여, 코드 파일 상단에 있을 수 있는 다음과 같은 설명 줄들을 모두 삭제하거나, 각 줄 앞에 #을 붙여 주석으로 만들어주세요.
 
-완성된 코드: pet_crm_with_messaging.py
-
-기존 코드에서 메시징 기능이 추가되고, 관련 데이터(전화번호) 및 함수들이 보강되었습니다. 아래 전체 코드를 복사하여 사용하시면 됩니다.
+잘못된 예시 (오류 발생):
 
 code
 Python
@@ -20,6 +18,36 @@ download
 content_copy
 expand_less
 
+# (파일 상단 어딘가에...)
+1. 📋 고객 리스트: 다양한 조건(구매 빈도, 펫 유형, 지출액 등)으로 고객을 필터링하고 검색할 수 있습니다.
+2. 📝 메시지 작성: 개별 또는 다수의 고객을 선택하고...
+
+올바른 예시 (주석 처리):
+
+code
+Python
+download
+content_copy
+expand_less
+IGNORE_WHEN_COPYING_START
+IGNORE_WHEN_COPYING_END
+# (파일 상단 어딘가에...)
+# 1. 📋 고객 리스트: 다양한 조건(구매 빈도, 펫 유형, 지출액 등)으로 고객을 필터링하고 검색할 수 있습니다.
+# 2. 📝 메시지 작성: 개별 또는 다수의 고객을 선택하고...
+
+가장 확실한 방법은, 파일의 모든 내용을 지우고 아래의 전체 코드로 다시 붙여넣는 것입니다. 아래 코드는 설명 부분 없이 순수한 파이썬 코드로만 구성되어 있습니다.
+
+수정된 전체 코드
+
+아래의 코드를 복사하여 dashboard_pet_Insight.py 파일의 모든 내용을 교체해주세요.
+
+code
+Python
+download
+content_copy
+expand_less
+IGNORE_WHEN_COPYING_START
+IGNORE_WHEN_COPYING_END
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -471,10 +499,8 @@ def send_message_simulation(customer_data, message_content, message_type):
     
     if success_rate:
         status = "발송 성공"
-        # st.success(f"✅ {customer_data['customer_name']}님에게 메시지가 성공적으로 발송되었습니다!")
     else:
         status = "발송 실패"
-        # st.error(f"❌ {customer_data['customer_name']}님에게 메시지 발송에 실패했습니다.")
     
     # 발송 기록 저장 (실제로는 데이터베이스에 저장)
     message_record = {
@@ -868,7 +894,6 @@ elif menu == "💰 수익 예측":
 elif menu == "📦 재고관리":
     st.title("📦 재고관리 시스템")
     
-    # 펫 제품 재고 데이터 생성
     @st.cache_data
     def load_inventory_data():
         np.random.seed(42)
@@ -916,8 +941,10 @@ elif menu == "📧 고객 메시지":
         st.session_state.message_history = []
     
     # 공통 데이터 로딩
-    pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
+    if 'frequency_category' not in pet_customers.columns:
+        pet_customers['frequency_category'] = pet_customers['pet_transactions'].apply(classify_frequency)
     
+    # TAB 1: 고객 리스트
     with tab1:
         st.subheader("📋 고객 리스트 관리")
         
@@ -944,7 +971,8 @@ elif menu == "📧 고객 메시지":
         elif club_filter == "일반 회원":
             filtered_customers = filtered_customers[filtered_customers['club_plus_member'] == False]
         if spend_filter != "전체":
-            low, high = map(int, spend_filter.replace('£', '').replace('+', '-9999').split('-'))
+            low_str, high_str = spend_filter.replace('£', '').replace('+', '-9999').split('-')
+            low, high = int(low_str), int(high_str)
             filtered_customers = filtered_customers[filtered_customers['pet_spend'].between(low, high)]
         
         search_term = st.text_input("🔍 고객명 또는 ID 검색", placeholder="고객명 또는 고객 ID를 입력하세요")
@@ -966,14 +994,18 @@ elif menu == "📧 고객 메시지":
             st.dataframe(display_df, use_container_width=True, height=400)
         else:
             st.warning("필터 조건에 맞는 고객이 없습니다.")
-    
+            
+        # 세션에 필터링된 고객 저장
+        st.session_state.filtered_customers_for_messaging = filtered_customers
+
+    # TAB 2: 메시지 작성
     with tab2:
         st.subheader("📝 메시지 작성 및 발송")
         col1, col2 = st.columns([1, 2])
         
         with col1:
             st.markdown("#### 📋 고객 선택")
-            selection_method = st.radio("고객 선택 방식", ["개별 선택", "조건별 다중 선택"])
+            selection_method = st.radio("고객 선택 방식", ["개별 선택", "필터된 고객 전체"])
             
             if selection_method == "개별 선택":
                 customer_list = pet_customers.apply(lambda row: f"{row['customer_name']} (ID: {row['household_key']})", axis=1).tolist()
@@ -982,7 +1014,10 @@ elif menu == "📧 고객 메시지":
                 target_customers_for_msg = pet_customers[pet_customers['household_key'] == selected_customer_id]
             else:
                 st.write("**'고객 리스트' 탭에서 필터링된 고객 대상**")
-                target_customers_for_msg = filtered_customers
+                if 'filtered_customers_for_messaging' in st.session_state:
+                    target_customers_for_msg = st.session_state.filtered_customers_for_messaging
+                else:
+                    target_customers_for_msg = pd.DataFrame() # 빈 데이터프레임
                 st.info(f"**선택된 고객 수**: {len(target_customers_for_msg)}명")
 
             if not target_customers_for_msg.empty:
@@ -1003,7 +1038,7 @@ elif menu == "📧 고객 메시지":
                 message_content = st.text_area("메시지 내용", height=200, placeholder="개인화 변수: {customer_name}, {pet_profile} 등")
             else:
                 template = MESSAGE_TEMPLATES[template_choice]
-                if len(target_customers_for_msg) == 1:
+                if not target_customers_for_msg.empty and len(target_customers_for_msg) == 1:
                     preview_message = personalize_message(template, target_customers_for_msg.iloc[0])
                     st.write("**메시지 미리보기:**"); st.info(preview_message)
                 message_content = st.text_area("메시지 내용 (편집 가능)", value=template, height=200)
@@ -1029,6 +1064,7 @@ elif menu == "📧 고객 메시지":
                 else:
                     st.warning("메시지 내용을 입력하고 고객을 선택해주세요.")
 
+    # TAB 3: 발송 기록
     with tab3:
         st.subheader("📊 메시지 발송 기록")
         
