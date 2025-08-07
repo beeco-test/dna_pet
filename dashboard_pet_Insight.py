@@ -1046,6 +1046,3 @@ elif menu == "📧 고객 메시지":
             st.dataframe(display_history, use_container_width=True)
         else:
             st.info("아직 발송된 메시지가 없습니다.")
-
---- 코드 끝 ---
-
